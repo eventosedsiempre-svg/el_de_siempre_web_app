@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El de Siempre — Congelados Artesanales</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,700;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- PANTALLA DE CARGA -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-logo">El de <span>Siempre</span></div>
+  <div class="loading-bar-bg"><div class="loading-bar"></div></div>
+  <div class="loading-text">Cargando productos...</div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo" onclick="showPage('home')">El de <span>Siempre</span><small>Congelados artesanales</small></div>
+    <ul class="nav-links">
+      <li><a onclick="showPage('shop')">Productos</a></li>
+      <li><a onclick="filterAndShow('PROMOCIONES')">🔥 Promos</a></li>
+      <li><a onclick="showPage('catering')">Catering</a></li>
+      <li><a onclick="showPage('nosotros')">Nosotros</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="btn-nav" style="font-size:11px;opacity:0.5" onclick="showPage('adminlogin')">Admin</button>
+      <button class="btn-nav" onclick="showPage('auth')">Ingresar</button>
+      <button class="cart-btn" onclick="openCart()">🛒 Carrito <span class="cart-count" id="cartCount">0</span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- BARRA DE PROMOS -->
+<div class="promo-bar" id="promoBar" onclick="filterAndShow('PROMOCIONES')">🔥 Cargando promociones...</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- WHATSAPP FLOTANTE -->
+<div class="wa-float">
+  <div class="wa-tooltip">¡Escribinos por WhatsApp!</div>
+  <a class="wa-btn" href="https://wa.me/5491133111207?text=Hola!%20Quiero%20hacer%20un%20pedido%20en%20El%20de%20Siempre%20%F0%9F%8D%95" target="_blank" rel="noopener">💬</a>
+</div>
+
+<!-- CARRITO -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-sidebar" id="cartSidebar">
+  <div class="cart-header">
+    <h3>Tu carrito</h3>
+    <button class="close-btn" onclick="closeCart()">×</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer">
+    <div class="coupon-row">
+      <input class="coupon-input" placeholder="Código de descuento" id="couponInput">
+      <button class="coupon-btn" onclick="applyCoupon()">Aplicar</button>
+    </div>
+    <div class="totals-row"><span>Subtotal</span><span id="cartSubtotal">$0</span></div>
+    <div class="totals-row"><span>Envío</span><span id="cartShipDisplay">—</span></div>
+    <div id="discountRow" style="display:none" class="totals-row">
+      <span style="color:#16a34a">Descuento</span>
+      <span style="color:#16a34a" id="discountAmt"></span>
+    </div>
+    <div class="totals-total"><span>Total</span><span id="cartTotal">—</span></div>
+    <button class="checkout-btn" onclick="goCheckout()">Finalizar compra →</button>
+  </div>
+</div>
+
+<!-- MODAL DE PRODUCTO -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-img" id="modalImg"></div>
+    <div class="modal-body">
+      <div id="modalBadge"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-subdesc" id="modalDesc"></div>
+      <div class="modal-price" id="modalPrice"></div>
+      <div class="qty-selector">
+        <button class="qty-big" onclick="changeModalQty(-1)">−</button>
+        <span class="qty-big-num" id="modalQty">1</span>
+        <button class="qty-big" onclick="changeModalQty(1)">+</button>
+      </div>
+      <button class="modal-add-btn" id="modalAddBtn">Agregar al carrito</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== HOME ========== -->
+<div class="page active" id="page-home">
+  <section class="hero" style="padding-top:80px">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-tag">Zona Norte GBA y alrededores</div>
+        <h1 class="hero-title">Comida casera<br><em>lista para</em><br>calentar</h1>
+        <p class="hero-sub">Pizzas, empanadas, tartas y milanesas artesanales. Congeladas en el punto justo para disfrutar cuando quieras.</p>
+        <button class="btn-primary" onclick="showPage('shop')">Ver productos →</button>
+        <button class="btn-secondary" onclick="showPage('catering')">Catering</button>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card" onclick="filterAndShow('PROMOCIONES')"><div class="hero-card-emoji">🔥</div><h3>Promociones</h3><p>Packs con el mejor precio</p></div>
+        <div class="hero-card" onclick="filterAndShow('PIZZAS')"><div class="hero-card-emoji">🍕</div><h3>Pizzas artesanales</h3><p>10 variedades</p></div>
+        <div class="hero-card" onclick="filterAndShow('EMPANADAS')"><div class="hero-card-emoji">🥟</div><h3>Empanadas</h3><p>8 rellenos — caja de 6 unidades</p></div>
+        <div class="hero-card" onclick="filterAndShow('MILANESAS')"><div class="hero-card-emoji">🥩</div><h3>Milanesas</h3><p>Peceto y pollo fraccionadas</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="categories-bg">
+    <div class="section-inner">
+      <div class="section-label">Explorá por categoría</div>
+      <h2 class="section-title">Toda la carta</h2>
+      <p class="section-sub">Seleccioná una categoría para ver los productos</p>
+      <div class="cats-grid" id="homeCats"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-inner">
+      <div class="section-label">Lo más pedido</div>
+      <h2 class="section-title">Destacados</h2>
+      <p class="section-sub">Los favoritos de nuestros clientes</p>
+      <div class="products-grid" id="featuredProducts"></div>
+    </div>
+  </section>
+
+  <section class="video-section">
+    <div class="section-inner">
+      <div class="section-label">En acción</div>
+      <h2 class="section-title">Eventos y producciones</h2>
+      <p class="section-sub">Mirá cómo trabajamos en cada evento</p>
+      <div class="video-grid">
+        <div class="video-slot" id="vslot0" onclick="uploadVideo(0)"><div class="video-slot-icon">▶️</div><h4>Video de evento</h4><p>Hacé clic para subir un video</p></div>
+        <div class="video-slot" id="vslot1" onclick="uploadVideo(1)"><div class="video-slot-icon">▶️</div><h4>Video de producción</h4><p>Hacé clic para subir un video</p></div>
+        <div class="video-slot" id="vslot2" onclick="uploadVideo(2)"><div class="video-slot-icon">▶️</div><h4>Video destacado</h4><p>Hacé clic para subir un video</p></div>
+      </div>
+      <input type="file" id="videoFileInput" accept="video/*" style="display:none" onchange="handleVideoUpload(this)">
+    </div>
+  </section>
+
+  <section class="how-bg">
+    <div class="section-inner">
+      <div class="section-label" style="color:rgba(255,255,255,0.4)">Simple y rápido</div>
+      <h2 class="section-title" style="color:#fff">¿Cómo funciona?</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,0.5)">Cuatro pasos para tener comida lista en casa</p>
+      <div class="steps-grid">
+        <div class="step"><div class="step-num">01</div><h3>Elegís</h3><p>Navegás el catálogo y elegís lo que querés.</p></div>
+        <div class="step"><div class="step-num">02</div><h3>Pedís</h3><p>Checkout en menos de 2 minutos.</p></div>
+        <div class="step"><div class="step-num">03</div><h3>Llega</h3><p>Te lo enviamos congelado a tu zona.</p></div>
+        <div class="step"><div class="step-num">04</div><h3>Disfrutás</h3><p>Calentás y tenés comida casera lista.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="benefits-bg">
+    <div class="section-inner">
+      <div class="section-label">Por qué elegirnos</div>
+      <h2 class="section-title">Nuestros diferenciales</h2>
+      <p class="section-sub">Cocinamos con ingredientes frescos y mucho amor</p>
+      <div class="benefits-grid">
+        <div class="benefit"><div class="benefit-icon">🧑‍🍳</div><h3>100% artesanal</h3><p>Hecho a mano en nuestra cocina con recetas propias.</p></div>
+        <div class="benefit"><div class="benefit-icon">❄️</div><h3>Congelado óptimo</h3><p>Conservamos sabor y nutrientes al máximo.</p></div>
+        <div class="benefit"><div class="benefit-icon">🚚</div><h3>Envío a tu zona</h3><p>Cubrimos Zona Norte GBA y alrededores.</p></div>
+        <div class="benefit"><div class="benefit-icon">✅</div><h3>Sin aditivos</h3><p>Sin conservantes ni colorantes.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-inner">
+      <div class="section-label">Lo que dicen</div>
+      <h2 class="section-title">Clientes felices</h2>
+      <p class="section-sub">Más de 2.000 familias ya confían en El de Siempre</p>
+      <div class="reviews-grid">
+        <div class="review-card"><div class="stars">★★★★★</div><p class="review-text">"Las empanadas son increíbles. Las tengo siempre en el freezer para cuando llegan visitas."</p><div class="reviewer"><div class="reviewer-avatar">MG</div><div><div class="reviewer-name">María González</div><div class="reviewer-loc">Nordelta, GBA</div></div></div></div>
+        <div class="review-card"><div class="stars">★★★★★</div><p class="review-text">"Pedí para el cumpleaños de mi hijo y todo el mundo preguntó dónde había comprado. La pizza, una maravilla."</p><div class="reviewer"><div class="reviewer-avatar">JP</div><div><div class="reviewer-name">Juan Pablo R.</div><div class="reviewer-loc">San Isidro, GBA</div></div></div></div>
+        <div class="review-card"><div class="stars">★★★★★</div><p class="review-text">"El catering para 40 personas, impecable. Puntualidad, presentación y sabor."</p><div class="reviewer"><div class="reviewer-avatar">CL</div><div><div class="reviewer-name">Carolina López</div><div class="reviewer-loc">Tigre, GBA</div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-inner">
+      <div class="catering-banner">
+        <div>
+          <div class="section-label" style="color:rgba(255,255,255,0.6)">Para eventos</div>
+          <h2>¿Organizás un evento?</h2>
+          <p>Paquetes de catering para reuniones, cumpleaños, empresas y casamientos.</p>
+          <button class="btn-white" onclick="showPage('catering')">Consultar catering →</button>
+        </div>
+        <div style="text-align:center;font-size:68px">🎉</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo" style="color:#fff">El de <span>Siempre</span></div>
+          <p>Comida artesanal congelada para disfrutar en casa.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Productos</h4>
+          <ul>
+            <li onclick="filterAndShow('PROMOCIONES')">🔥 Promociones</li>
+            <li onclick="filterAndShow('PIZZAS')">Pizzas</li>
+            <li onclick="filterAndShow('EMPANADAS')">Empanadas</li>
+            <li onclick="filterAndShow('TARTAS')">Tartas</li>
+            <li onclick="filterAndShow('MILANESAS')">Milanesas</li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Empresa</h4>
+          <ul>
+            <li onclick="showPage('nosotros')">Nosotros</li>
+            <li onclick="showPage('catering')">Catering</li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contacto</h4>
+          <ul>
+            <li onclick="window.open('https://wa.me/5491133111207','_blank')">💬 WhatsApp</li>
+            <li>Retiro: Rincón de Milberg</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2024 El de Siempre. Todos los derechos reservados.</span>
+        <span>Hecho con ❤️ en Zona Norte</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ========== SHOP ========== -->
+<div class="page" id="page-shop">
+  <div style="max-width:1200px;margin:0 auto;padding:24px 5vw 56px">
+    <input class="form-input" style="margin-bottom:16px;font-size:14px;padding:12px 16px" placeholder="Buscar productos..." oninput="filterProducts(this.value)" id="searchInput">
+    <div class="cats-grid" id="shopCats" style="margin-bottom:22px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:700" id="shopTitle">Todos los productos</div>
+      <span style="font-size:13px;color:var(--gray)" id="productCount"></span>
+    </div>
+    <div class="products-grid" id="shopProducts"></div>
+  </div>
+</div>
+
+<!-- ========== NOSOTROS ========== -->
+<div class="page" id="page-nosotros">
+  <section class="nosotros-bg" style="padding:100px 5vw">
+    <div class="nosotros-inner">
+      <div class="nosotros-text">
+        <div class="section-label" style="color:rgba(255,255,255,0.4)">Quiénes somos</div>
+        <h2>Comida de verdad,<br><em>hecha con amor</em></h2>
+        <p>Somos El de Siempre, una cocina familiar de Zona Norte del GBA especializada en comida congelada artesanal para el hogar.</p>
+        <p>Cada pizza, empanada, tarta y milanesa sale de nuestras manos usando ingredientes frescos y recetas propias. Sin conservantes, sin aditivos.</p>
+        <p>También hacemos eventos de todo tipo — desde una pizza party íntima hasta catering para empresas y casamientos.</p>
+        <div class="nosotros-stats">
+          <div class="nosotros-stat"><div class="nosotros-stat-num">2.000+</div><div class="nosotros-stat-label">familias satisfechas</div></div>
+          <div class="nosotros-stat"><div class="nosotros-stat-num">29</div><div class="nosotros-stat-label">productos artesanales</div></div>
+          <div class="nosotros-stat"><div class="nosotros-stat-num">9</div><div class="nosotros-stat-label">zonas de entrega</div></div>
+          <div class="nosotros-stat"><div class="nosotros-stat-num">100%</div><div class="nosotros-stat-label">sin conservantes</div></div>
+        </div>
+        <a class="cotizar-btn" onclick="showPage('catering')">Cotizar mi evento →</a>
+      </div>
+      <div class="nosotros-visual">
+        <div class="nosotros-img-slot" id="nslot0" onclick="uploadNosotrosMedia(0)"><div class="nosotros-img-slot-icon">📷</div><p>Subí una foto o video de tu cocina</p></div>
+        <div class="nosotros-img-slot" id="nslot1" onclick="uploadNosotrosMedia(1)"><div class="nosotros-img-slot-icon">🎥</div><p>Subí una foto o video de tus productos</p></div>
+        <div class="nosotros-img-slot" id="nslot2" onclick="uploadNosotrosMedia(2)"><div class="nosotros-img-slot-icon">🎉</div><p>Foto o video de un evento</p></div>
+        <div class="nosotros-img-slot" id="nslot3" onclick="uploadNosotrosMedia(3)"><div class="nosotros-img-slot-icon">🍕</div><p>Tu mejor foto de producto</p></div>
+      </div>
+    </div>
+    <input type="file" id="nosotrosMediaInput" accept="image/*,video/*" style="display:none" onchange="handleNosotrosUpload(this)">
+  </section>
+</div>
+
+<!-- ========== CATERING ========== -->
+<div class="page" id="page-catering">
+  <div class="catering-page">
+    <div style="font-size:44px;margin-bottom:13px">🎉</div>
+    <h2>Catering y eventos</h2>
+    <p class="sub">Completá el formulario y te contactamos en menos de 2 horas para armar el menú ideal para tu evento.</p>
+    <div class="auth-card">
+      <div class="form-group"><label>Nombre completo <span class="req">*</span></label><input class="form-input" placeholder="Tu nombre" id="ctName"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Teléfono <span class="req">*</span></label><input class="form-input" placeholder="+54 11 0000-0000" id="ctPhone" type="tel"></div>
+        <div class="form-group"><label>Personas invitadas <span class="req">*</span></label><input class="form-input" placeholder="Ej: 40" id="ctGuests" type="number" min="1"></div>
+      </div>
+      <div class="form-group"><label>Zona del evento <span class="req">*</span></label><input class="form-input" placeholder="Ej: Nordelta, GBA" id="ctZone"></div>
+      <div class="form-group">
+        <label>Tipo de evento <span class="req">*</span></label>
+        <div class="select-wrap">
+          <select class="form-select" id="ctType">
+            <option value="">Seleccioná una opción...</option>
+            <option value="pizza_party">🍕 Pizza party</option>
+            <option value="pizza_premium">✨ Pizza premium</option>
+            <option value="asado">🥩 Asado</option>
+            <option value="menu_medida">🍽️ Menú a medida</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-full" onclick="submitCatering()">Enviar consulta y abrir WhatsApp →</button>
+      <p style="font-size:12px;color:var(--gray);text-align:center;margin-top:10px">Al enviar, se abre WhatsApp con tu consulta pre-cargada</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CHECKOUT ========== -->
+<div class="page" id="page-checkout">
+  <div class="checkout-layout">
+    <div>
+      <div class="checkout-steps">
+        <div class="ck-step done">✓ Carrito</div>
+        <div class="ck-step active" id="ck2">Datos</div>
+        <div class="ck-step" id="ck3">Entrega</div>
+        <div class="ck-step" id="ck4">Pago</div>
+      </div>
+
+      <!-- Paso 2: Datos personales -->
+      <div id="ckStep2">
+        <div class="section-card">
+          <h3>👤 Datos personales</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Nombre <span class="req">*</span></label><input class="form-input" placeholder="Juan" id="ckName"></div>
+            <div class="form-group"><label>Apellido <span class="req">*</span></label><input class="form-input" placeholder="García" id="ckLast"></div>
+          </div>
+          <div class="form-group"><label>Email <span class="req">*</span></label><input class="form-input" placeholder="juan@email.com" type="email" id="ckEmail"></div>
+          <div class="form-group"><label>Teléfono</label><input class="form-input" placeholder="+54 11 0000-0000" id="ckPhone"></div>
+        </div>
+        <button class="checkout-btn" onclick="ckNext(2)">Continuar →</button>
+      </div>
+
+      <!-- Paso 3: Entrega -->
+      <div id="ckStep3" style="display:none">
+        <div class="section-card">
+          <h3>📦 Zona de entrega <span class="req">*</span></h3>
+          <p style="font-size:12px;color:var(--gray);margin-bottom:12px">Envío gratis en pedidos mayores a $150.000.</p>
+          <div class="select-wrap">
+            <select class="form-select" id="zoneSelect" onchange="onZoneChange()">
+              <option value="">Seleccioná tu zona de entrega...</option>
+            </select>
+          </div>
+          <div class="zone-card" id="zoneInfo" style="display:none">
+            <h4 id="zoneInfoName"></h4>
+            <p id="zoneInfoDesc"></p>
+            <div class="zone-cost" id="zoneInfoCost"></div>
+          </div>
+        </div>
+        <div class="section-card" id="addressCard" style="display:none">
+          <h3>📍 Dirección de entrega</h3>
+          <div class="form-group"><label>Calle y número <span class="req">*</span></label><input class="form-input" placeholder="Av. del Libertador 1234" id="ckStreet"></div>
+          <div class="form-row">
+            <div class="form-group"><label>Localidad</label><input class="form-input" placeholder="Nordelta" id="ckCity"></div>
+            <div class="form-group"><label>Casa/Depto</label><input class="form-input" placeholder="Casa 15 / Depto 3B" id="ckDepto"></div>
+          </div>
+          <div class="form-group"><label>Notas para el repartidor</label><input class="form-input" placeholder="Tocar timbre 2 veces..." id="ckNotes"></div>
+        </div>
+        <button class="checkout-btn" onclick="ckNext(3)">Continuar →</button>
+      </div>
+
+      <!-- Paso 4: Pago -->
+      <div id="ckStep4" style="display:none">
+        <div class="section-card">
+          <h3>💳 Medio de pago</h3>
+          <div class="pay-opts">
+            <div class="pay-opt selected" onclick="selectPay(this)"><span style="font-size:19px">💳</span><div><div style="font-weight:500">Tarjeta crédito/débito</div><div style="font-size:11px;color:var(--gray)">Visa, Mastercard, Amex</div></div></div>
+            <div class="pay-opt" onclick="selectPay(this)"><span style="font-size:19px">🏦</span><div><div style="font-weight:500">Transferencia bancaria</div><div style="font-size:11px;color:var(--gray)">10% de descuento</div></div></div>
+            <div class="pay-opt" onclick="selectPay(this)"><span style="font-size:19px">💚</span><div><div style="font-weight:500">Mercado Pago</div><div style="font-size:11px;color:var(--gray)">Hasta 12 cuotas sin interés</div></div></div>
+            <div class="pay-opt" onclick="selectPay(this)"><span style="font-size:19px">💵</span><div><div style="font-weight:500">Efectivo al entregar</div><div style="font-size:11px;color:var(--gray)">Coordinamos al confirmar</div></div></div>
+          </div>
+        </div>
+        <button class="checkout-btn" style="background:var(--accent)" onclick="confirmOrder()">✓ Confirmar pedido</button>
+      </div>
+    </div>
+
+    <!-- Resumen del pedido -->
+    <div class="order-summary">
+      <h3>Resumen del pedido</h3>
+      <div id="orderSummaryItems"></div>
+      <div class="totals-row" style="margin-top:10px"><span>Subtotal</span><span id="summarySubtotal">$0</span></div>
+      <div class="totals-row"><span>Envío</span><span id="summaryShip">—</span></div>
+      <div class="oi-total"><span>Total</span><span id="summaryTotal">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CONFIRMACIÓN ========== -->
+<div class="page" id="page-confirm">
+  <div class="confirm-page">
+    <div class="confirm-check">✓</div>
+    <h2>¡Pedido confirmado!</h2>
+    <p>Gracias por tu compra. Te avisamos por WhatsApp cuando salga tu pedido.</p>
+    <div class="order-num" id="orderNum">#EDS-00001</div>
+    <br>
+    <a class="wa-confirm-btn" id="waConfirmBtn" href="https://wa.me/5491133111207" target="_blank">💬 Seguir por WhatsApp</a>
+    <br><br>
+    <button class="btn-nav" onclick="showPage('home')">Volver al inicio</button>
+  </div>
+</div>
+
+<!-- ========== AUTH ========== -->
+<div class="page" id="page-auth">
+  <div class="auth-page">
+    <h2>Bienvenido/a</h2>
+    <p>Ingresá o creá tu cuenta para gestionar tus pedidos</p>
+    <div class="auth-card">
+      <div class="auth-toggle">
+        <button class="auth-tab active" onclick="switchAuth('login',this)">Ingresar</button>
+        <button class="auth-tab" onclick="switchAuth('register',this)">Registrarse</button>
+      </div>
+
+      <!-- Login -->
+      <div id="authLogin">
+        <div class="form-group"><label>Email</label><input class="form-input" placeholder="tu@email.com" type="email" id="loginEmail"></div>
+        <div class="form-group"><label>Contraseña</label><input class="form-input" placeholder="••••••••" type="password" id="loginPass"></div>
+        <button class="btn-full" onclick="doLogin()">Ingresar →</button>
+        <div class="divider"><span>o</span></div>
+        <button class="google-btn" onclick="doLogin()">🌐 Continuar con Google</button>
+      </div>
+
+      <!-- Registro -->
+      <div id="authRegister" style="display:none">
+        <div class="form-row">
+          <div class="form-group"><label>Nombre <span class="req">*</span></label><input class="form-input" placeholder="Juan" id="regName"></div>
+          <div class="form-group"><label>Apellido <span class="req">*</span></label><input class="form-input" placeholder="García" id="regLast"></div>
+        </div>
+        <div class="form-group">
+          <label>Email <span class="req">*</span></label>
+          <input class="form-input" placeholder="tu@email.com" type="email" id="regEmail">
+          <div class="error-msg" id="emailError">Este email ya está registrado</div>
+        </div>
+        <div class="form-group"><label>Teléfono</label><input class="form-input" placeholder="+54 11 0000-0000" id="regPhone"></div>
+        <div class="form-group">
+          <label>Tu zona <span class="req">*</span></label>
+          <div class="select-wrap"><select class="form-select" id="regZone"><option value="">Seleccioná tu zona...</option></select></div>
+        </div>
+        <div class="form-group" id="otherZoneGroup" style="display:none">
+          <label>Especificá tu zona</label>
+          <input class="form-input" placeholder="Ej: Escobar, Pilar..." id="regZoneOther">
+        </div>
+        <div class="form-group"><label>Contraseña <span class="req">*</span></label><input class="form-input" placeholder="Mínimo 8 caracteres" type="password" id="regPass"></div>
+        <button class="btn-full" onclick="doRegister()">Crear cuenta →</button>
+        <p style="font-size:11px;color:var(--gray);text-align:center;margin-top:10px">Tus datos quedan guardados de forma segura</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CUENTA ========== -->
+<div class="page" id="page-account">
+  <div class="account-layout">
+    <div class="account-nav">
+      <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;margin-bottom:7px;border-bottom:1px solid var(--border)">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Fraunces',serif" id="acctAvatar">?</div>
+        <div>
+          <div style="font-size:13px;font-weight:500" id="acctName">Mi cuenta</div>
+          <div style="font-size:11px;color:var(--gray)" id="acctZone">—</div>
+        </div>
+      </div>
+      <div class="account-nav-item active" onclick="showAccountTab('orders',this)"><span>📦</span> Mis pedidos</div>
+      <div class="account-nav-item" onclick="showAccountTab('profile',this)"><span>👤</span> Mi perfil</div>
+      <div class="account-nav-item" onclick="showAccountTab('favorites',this)"><span>❤️</span> Favoritos</div>
+      <div class="account-nav-item" style="margin-top:7px;border-top:1px solid var(--border);padding-top:9px;color:#dc2626" onclick="logout()"><span>🚪</span> Cerrar sesión</div>
+    </div>
+    <div id="accountContent">
+      <div id="tab-orders">
+        <h2 style="font-size:19px;font-weight:700;margin-bottom:16px">Mis pedidos</h2>
+        <div id="myOrdersList"><p style="color:var(--gray);font-size:14px">Todavía no tenés pedidos.</p></div>
+      </div>
+      <div id="tab-profile" style="display:none">
+        <h2 style="font-size:19px;font-weight:700;margin-bottom:16px">Mi perfil</h2>
+        <div class="section-card">
+          <div class="form-row">
+            <div class="form-group"><label>Nombre</label><input class="form-input" id="profName"></div>
+            <div class="form-group"><label>Apellido</label><input class="form-input" id="profLast"></div>
+          </div>
+          <div class="form-group"><label>Email</label><input class="form-input" id="profEmail" type="email"></div>
+          <div class="form-group"><label>Teléfono</label><input class="form-input" id="profPhone"></div>
+          <div class="form-group"><label>Tu zona</label><input class="form-input" id="profZone" readonly style="background:var(--cream)"></div>
+          <button class="btn-full" style="max-width:160px" onclick="showToast('✓ Perfil actualizado')">Guardar</button>
+        </div>
+      </div>
+      <div id="tab-favorites" style="display:none">
+        <h2 style="font-size:19px;font-weight:700;margin-bottom:16px">Favoritos</h2>
+        <div class="products-grid" id="favoritesGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== LOGIN ADMIN ========== -->
+<div class="page" id="page-adminlogin">
+  <div class="admin-login">
+    <div style="font-size:44px;margin-bottom:14px">🔐</div>
+    <h2>Panel Admin</h2>
+    <p>Acceso exclusivo para el administrador</p>
+    <div class="auth-card" style="text-align:left">
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input class="form-input" placeholder="••••••••" type="password" id="adminPass" onkeydown="if(event.key==='Enter')doAdminLogin()">
+      </div>
+      <button class="btn-full" onclick="doAdminLogin()">Acceder →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PANEL ADMIN ========== -->
+<div class="page" id="page-admin">
+  <div class="admin-topbar">
+    <div class="admin-topbar-title">El de Siempre <span style="opacity:0.35">/ Admin</span></div>
+    <div class="admin-nav">
+      <div class="admin-nav-item active" onclick="showAdminTab('dashboard',this)">Dashboard</div>
+      <div class="admin-nav-item" onclick="showAdminTab('products',this)">Productos</div>
+      <div class="admin-nav-item" onclick="showAdminTab('orders',this)">Pedidos</div>
+      <div class="admin-nav-item" onclick="showAdminTab('customers',this)">Clientes</div>
+      <div class="admin-nav-item" onclick="showAdminTab('catering',this)">Catering</div>
+      <div class="admin-nav-item" onclick="showAdminTab('videos',this)">Videos</div>
+    </div>
+    <button class="btn-nav" style="color:#fff;border-color:rgba(255,255,255,0.25);font-size:12px" onclick="showPage('home')">← Volver al sitio</button>
+  </div>
+
+  <div class="admin-wrap">
+    <!-- Dashboard -->
+    <div id="adminDashboard">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Ventas acumuladas</div><div class="stat-num" id="adminSalesMonth">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Pedidos</div><div class="stat-num" id="adminOrderCount">0</div></div>
+        <div class="stat-card"><div class="stat-label">Usuarios</div><div class="stat-num" id="adminUserCount">0</div></div>
+        <div class="stat-card"><div class="stat-label">Catering</div><div class="stat-num" id="adminCateringCount">0</div></div>
+      </div>
+      <div class="chart-wrap">
+        <div style="font-size:14px;font-weight:600">Ventas semanales</div>
+        <div class="chart-bars" id="weeklyChart"></div>
+      </div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px">Últimos pedidos</div>
+      <table class="admin-table">
+        <thead><tr><th>#Pedido</th><th>Cliente</th><th>Zona / Dirección</th><th>Total</th><th>Estado</th></tr></thead>
+        <tbody id="adminOrdersTbody"><tr><td colspan="5" style="color:var(--gray);text-align:center;padding:18px">Sin pedidos todavía</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Productos -->
+    <div id="adminProducts" style="display:none">
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px">Gestión de productos</div>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Para cambiar precios o agregar productos editá el archivo <strong>js/data.js</strong> directamente.</p>
+      <div id="productEditList"></div>
+    </div>
+
+    <!-- Pedidos -->
+    <div id="adminOrders" style="display:none">
+      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Todos los pedidos</div>
+      <table class="admin-table">
+        <thead><tr><th>#Pedido</th><th>Fecha</th><th>Cliente</th><th>Zona / Dirección</th><th>Total</th><th>Estado</th><th>Cambiar</th></tr></thead>
+        <tbody id="allOrdersTbody"><tr><td colspan="7" style="color:var(--gray);text-align:center;padding:18px">Sin pedidos todavía</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Clientes -->
+    <div id="adminCustomers" style="display:none">
+      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Usuarios registrados</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:16px">
+        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-num" id="cusTotal">0</div></div>
+        <div class="stat-card"><div class="stat-label">Último registro</div><div class="stat-num" style="font-size:13px;margin-top:6px" id="cusLast">—</div></div>
+        <div class="stat-card"><div class="stat-label">Hoy</div><div class="stat-num" id="cusToday">0</div></div>
+      </div>
+      <table class="admin-table">
+        <thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Zona</th><th>Fecha</th></tr></thead>
+        <tbody id="customersBody"><tr><td colspan="5" style="color:var(--gray);text-align:center;padding:18px">Sin usuarios todavía</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Catering -->
+    <div id="adminCatering" style="display:none">
+      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Consultas de catering</div>
+      <table class="admin-table">
+        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Zona</th><th>Personas</th><th>Tipo</th><th>Fecha</th></tr></thead>
+        <tbody id="cateringBody"><tr><td colspan="6" style="color:var(--gray);text-align:center;padding:18px">Sin consultas todavía</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Videos -->
+    <div id="adminVideos" style="display:none">
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px">Videos de eventos</div>
+      <div class="section-card">
+        <h3>🎬 URLs de YouTube</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="form-group"><label>Video 1</label><div style="display:flex;gap:8px"><input class="form-input" placeholder="https://youtube.com/embed/..." id="vidUrl0"><button class="edit-btn" onclick="embedVideo(0)">Aplicar</button></div></div>
+          <div class="form-group"><label>Video 2</label><div style="display:flex;gap:8px"><input class="form-input" placeholder="https://youtube.com/embed/..." id="vidUrl1"><button class="edit-btn" onclick="embedVideo(1)">Aplicar</button></div></div>
+          <div class="form-group"><label>Video 3</label><div style="display:flex;gap:8px"><input class="form-input" placeholder="https://youtube.com/embed/..." id="vidUrl2"><button class="edit-btn" onclick="embedVideo(2)">Aplicar</button></div></div>
+        </div>
+      </div>
+      <div class="section-card" style="margin-top:12px">
+        <h3>📸 Fotos de Nosotros</h3>
+        <button class="btn-full" style="max-width:200px" onclick="showPage('nosotros')">→ Ir a sección Nosotros</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
