@@ -36,6 +36,24 @@ function parseOrderItems(order) {
   });
 }
 
+// Para "Repetir pedido": busca cada producto entre los activos de hoy (por id, o por nombre en los pedidos viejos).
+// Devuelve { toAdd: [{ id, qty }], skipped: [nombres que ya no están] }. El precio lo pone el carrito (precio actual).
+function buildRepeatItems(orderItems, activeProducts) {
+  const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const toAdd = [];
+  const skipped = [];
+  orderItems.forEach(item => {
+    const p = item.id != null
+      ? activeProducts.find(x => x.id === item.id)
+      : activeProducts.find(x => norm(x.name) === norm(item.name));
+    if (!p) { skipped.push(item.name); return; }
+    const ex = toAdd.find(x => x.id === p.id);
+    if (ex) ex.qty += item.qty;
+    else toAdd.push({ id: p.id, qty: item.qty });
+  });
+  return { toAdd, skipped };
+}
+
 // "Av. del Libertador 1234" → { calle: 'Av. del Libertador', numero: '1234' } (para la dirección vieja del perfil)
 function splitStreetNumber(street) {
   const s = String(street || '').trim();
@@ -60,5 +78,5 @@ function escapeHtml(str) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER_STATUSES, statusLabel, statusClass, parseOrderItems, splitStreetNumber, formatAddress, sameAddress, escapeHtml };
+  module.exports = { ORDER_STATUSES, statusLabel, statusClass, parseOrderItems, buildRepeatItems, splitStreetNumber, formatAddress, sameAddress, escapeHtml };
 }

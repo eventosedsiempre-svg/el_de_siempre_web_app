@@ -316,6 +316,7 @@ function openOrderDetail(o, forCustomer = false) {
   document.getElementById('odAddress').innerHTML    = o.direccion === 'Retiro en local'
     ? '📍 Retiro en local'
     : addr ? '📍 ' + escapeHtml(addr) : '';
+  document.getElementById('odActions').style.display = 'none';
   const modal = document.getElementById('orderDetailModal');
   modal.style.display = 'flex';
 }
@@ -356,14 +357,30 @@ function filterAndShow(cat) {
 }
 
 // ===== CARRITO =====
-function addToCart(id, qty = 1) {
+function addToCart(id, qty = 1, silent = false) {
   const p  = products.find(x => x.id === id);
   if (!p) return;
   const ex = cart.find(x => x.id === id);
   if (ex) ex.qty += qty;
   else cart.push({ ...p, qty });
   updateCartUI();
-  showToast('✓ ' + p.name + ' agregado');
+  if (!silent) showToast('✓ ' + p.name + ' agregado');
+}
+
+// Carga al carrito los productos de un pedido anterior, con los precios de hoy
+function repeatOrder(i) {
+  const o = myOrders[i];
+  if (!o) return;
+  const { toAdd, skipped } = buildRepeatItems(parseOrderItems(o), products);
+  closeOrderDetail();
+  if (!toAdd.length) {
+    showToast('❌ Los productos de este pedido ya no están disponibles', 4500);
+    return;
+  }
+  toAdd.forEach(item => addToCart(item.id, item.qty, true));
+  openCart();
+  if (skipped.length) showToast('Algunos productos ya no están disponibles y no se agregaron', 5000);
+  else showToast('✓ Agregamos los productos al carrito');
 }
 
 function updateCartUI() {
@@ -1045,13 +1062,18 @@ function renderMyOrders() {
           <div class="order-status ${statusClass(o.status)}">${statusLabel(o.status)}</div>
           <div style="font-weight:600;font-size:13px;margin-top:3px">$${Number(o.total).toLocaleString('es-AR')}</div>
           <div class="order-row-more">Ver detalle ›</div>
+          <button class="order-repeat-btn" onclick="event.stopPropagation();repeatOrder(${i})">↻ Repetir pedido</button>
         </div>
       </div>`).join('')
     : '<p style="color:var(--gray);font-size:14px">Todavía no tenés pedidos.</p>';
 }
 
 function openMyOrder(i) {
-  if (myOrders[i]) openOrderDetail(myOrders[i], true);
+  if (!myOrders[i]) return;
+  openOrderDetail(myOrders[i], true);
+  const actions = document.getElementById('odActions');
+  actions.innerHTML = `<button class="btn-full" onclick="repeatOrder(${i})">↻ Repetir pedido</button>`;
+  actions.style.display = 'block';
 }
 
 // ===== DIRECCIONES =====
@@ -1384,12 +1406,13 @@ function showPage(page) {
   }
 }
 
-function showToast(msg) {
+function showToast(msg, duration = 2800) {
   const t = document.getElementById('toast');
   t.textContent = msg;
+  t.classList.toggle('toast-wrap', msg.length > 38);
   t.classList.add('show');
   clearTimeout(t._t);
-  t._t = setTimeout(() => t.classList.remove('show'), 2800);
+  t._t = setTimeout(() => t.classList.remove('show'), duration);
 }
 
 init();
