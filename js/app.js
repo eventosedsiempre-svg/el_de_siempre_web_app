@@ -326,7 +326,7 @@ function renderOrdersInTable(orders) {
             <div style="font-size:11px;color:var(--gray);margin-top:2px">${o.email || ''}${o.phone ? ' · ' + o.phone : ''}</div>
           </td>
           <td>${o.zone || '—'}${o.direccion && o.direccion !== 'Retiro en local' ? ' — ' + o.direccion : ''}</td>
-          <td>$${o.total.toLocaleString('es-AR')}${o.coupon ? ` <span style="display:inline-block;margin-left:4px;background:#dcfce7;color:#16a34a;border-radius:6px;padding:2px 6px;font-size:10px;font-weight:600">🏷️ ${o.coupon}</span>` : ''}</td>
+          <td>$${o.total.toLocaleString('es-AR')}${o.coupon ? ` <span style="display:inline-block;margin-left:4px;background:#dcfce7;color:#16a34a;border-radius:6px;padding:2px 6px;font-size:10px;font-weight:600">🏷️ ${o.coupon}</span>` : ''}${o.promo_descuento > 0 ? ` <span style="display:inline-block;margin-left:4px;background:#fef9c3;color:#854d0e;border-radius:6px;padding:2px 6px;font-size:10px;font-weight:600">🔥 Promo</span>` : ''}</td>
           <td><span class="order-status ${statusClass(o.status)}">${statusLabel(o.status)}</span></td>
           <td style="display:flex;gap:6px;align-items:center">
             <button onclick="openOrderDetail(${JSON.stringify(o).replace(/"/g,'&quot;')})" style="background:none;border:1px solid var(--border);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center" title="Ver detalle">ⓘ</button>
@@ -342,7 +342,8 @@ function renderOrdersInTable(orders) {
 // forCustomer: vista de "Mis pedidos" (sin datos de contacto, con estado destacado)
 function openOrderDetail(o, forCustomer = false) {
   const disc  = o.discount || 0;
-  const sub   = o.total - (o.ship || 0) + disc;
+  const promoDisc = o.promo_descuento || 0;
+  const sub   = o.total - (o.ship || 0) + disc + promoDisc;
   const items = parseOrderItems(o);
   document.getElementById('odTitle').textContent = 'Pedido ' + o.id;
   if (forCustomer) {
@@ -353,11 +354,19 @@ function openOrderDetail(o, forCustomer = false) {
   }
   document.getElementById('odItems').innerHTML   = items.map(item => `
     <div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <span>${escapeHtml(item.name)} <span style="font-weight:600;color:var(--black)">x${item.qty}</span>${item.price != null ? `<span style="color:var(--gray);font-size:11px"> · $${item.price.toLocaleString('es-AR')} c/u</span>` : ''}</span>
+      <span>${escapeHtml(item.name)} <span style="font-weight:600;color:var(--black)">x${item.qty}</span>${item.price != null ? `<span style="color:var(--gray);font-size:11px"> · ${item.precio_original > item.price ? `<s>${money(item.precio_original)}</s> ` : ''}$${item.price.toLocaleString('es-AR')} c/u</span>` : ''}${item.promo ? `<br><span class="promo-tag">🔥 ${escapeHtml(item.promo)}</span>` : ''}</span>
       <span style="font-weight:600;white-space:nowrap">${item.price != null ? '$' + (item.price * item.qty).toLocaleString('es-AR') : ''}</span>
     </div>`).join('') || '<p style="font-size:13px;color:var(--gray)">Sin detalle de productos</p>';
   document.getElementById('odSubtotal').textContent = '$' + sub.toLocaleString('es-AR');
   document.getElementById('odShip').textContent     = o.ship ? '$' + Number(o.ship).toLocaleString('es-AR') : 'Gratis';
+  const promoRow = document.getElementById('odPromoRow');
+  if (promoDisc > 0) {
+    promoRow.style.display = 'flex';
+    document.getElementById('odPromoLabel').textContent = '🔥 ' + (o.promos || 'Promo');
+    document.getElementById('odPromoAmt').textContent   = '-' + money(promoDisc);
+  } else {
+    promoRow.style.display = 'none';
+  }
   const couponRow = document.getElementById('odCouponRow');
   if (o.coupon && disc > 0) {
     couponRow.style.display = 'flex';
@@ -729,15 +738,23 @@ async function confirmOrder() {
       status:    'Recibido',
       coupon:    disc > 0 ? appliedCoupon : null,
       discount:  Math.round(disc),
-      items_detalle: t.items.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.precio })),
+      items_detalle: t.items.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.precio, precio_original: i.precioOriginal, promo: i.promo ? (i.promo.texto || i.promo.nombre) : null })),
+      promo_descuento: Math.round(t.descuentoPromos),
+      promos:    t.promosAplicadas.join(' · ') || null,
     };
 
     let insertError = await insertOrder(order);
+    // Si todavía no se corrió supabase/promociones.sql, se guarda sin las columnas de promo (el total ya trae el descuento)
+    const { promo_descuento, promos, ...sinPromo } = order;
+    if (insertError) {
+      console.warn('Insert con promos falló, reintento sin columnas de promo:', insertError);
+      insertError = await insertOrder(sinPromo);
+    }
     if (insertError) {
       // Si la base todavía no tiene la columna items_detalle (o no acepta el estado nuevo),
       // guardamos el pedido como antes para no perder la venta
       console.warn('Insert con detalle falló, reintento sin detalle:', insertError);
-      const { items_detalle, ...legacy } = order;
+      const { items_detalle, ...legacy } = sinPromo;
       insertError = await insertOrder({ ...legacy, status: 'Pendiente' });
     }
 
