@@ -4,40 +4,40 @@
 // ============================================================
 const PRODUCTOS = [
   // PROMOCIONES
-  { id: 1,  name: 'Muzzarella x5',                price: 44775, cat: 'PROMOCIONES', emoji: '🔥', badge: 'promo',   img: 'images/productos/pizza-muzzarella.jpg' },
-  { id: 2,  name: 'Muzzarella x10',               price: 84575, cat: 'PROMOCIONES', emoji: '🔥', badge: 'promo',   img: 'images/productos/pizza-muzzarella.jpg' },
-  { id: 3,  name: '10 pizzas a elección',          price: 99900, cat: 'PROMOCIONES', emoji: '🔥', badge: 'promo',   img: 'images/productos/pizza-muzzarella.jpg' },
+  { id: 1,  name: 'Muzzarella x5',                price: 49500,  cat: 'PROMOCIONES', emoji: '🔥', badge: 'promo',   img: 'images/productos/MUZZA-X5-MUZZA-X10.jpg' },
+  { id: 2,  name: 'Muzzarella x10',               price: 93500,  cat: 'PROMOCIONES', emoji: '🔥', badge: 'promo',   img: 'images/productos/MUZZA-X5-MUZZA-X10.jpg' },
+  { id: 3,  name: '10 pizzas a elección',          price: 106250, cat: 'PROMOCIONES', emoji: '🔥', badge: 'promo',   img: 'images/productos/10-PIZZAS-A-ELECCION.jpg' },
   // PIZZAS
-  { id: 4,  name: 'Pizza Muzzarella',              price: 9950,  cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/pizza-muzzarella.jpg' },
-  { id: 5,  name: 'Pizza Jamón cocido',            price: 10395, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: '' },
-  { id: 6,  name: 'Pizza Fugazzeta',               price: 10395, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: '' },
-  { id: 7,  name: 'Pizza Cebolla caramelizada',    price: 10395, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: '' },
-  { id: 8,  name: 'Pizza Provolone',               price: 11320, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: '' },
-  { id: 9,  name: 'Pizza Jamón y morrón',          price: 11320, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: '' },
-  { id: 10, name: 'Pizza 4 quesos',                price: 11320, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: '' },
-  { id: 11, name: 'Pizza Cebolla y queso brie',    price: 11320, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: '' },
-  { id: 12, name: 'Pizza Cebolla y roquefort',     price: 11320, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: '' },
-  { id: 13, name: 'Pizza Champignon y parmesano',  price: 11320, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: '' },
+  { id: 4,  name: 'Pizza Muzzarella',              price: 11000, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/MUZZARELLA.jpg' },
+  { id: 5,  name: 'Pizza Jamón cocido',            price: 11500, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/JAMON.jpg' },
+  { id: 6,  name: 'Pizza Fugazzeta',               price: 11500, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/CEBOLLA-CARAMELIZADA-Y-FUGAZZETA.jpg' },
+  { id: 7,  name: 'Pizza Cebolla caramelizada',    price: 11500, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/CEBOLLA-CARAMELIZADA-Y-FUGAZZETA.jpg' },
+  { id: 8,  name: 'Pizza Provolone',               price: 12500, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/PROVOLONE.jpg' },
+  { id: 9,  name: 'Pizza Jamón y morrón',          price: 12500, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/JAMON-Y-MORRON.jpg' },
+  { id: 10, name: 'Pizza 4 quesos',                price: 12500, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/4-QUESOS.jpg' },
+  { id: 11, name: 'Pizza Cebolla y queso brie',    price: 12500, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/BRIE-Y-CARAMELIZADA.jpg' },
+  { id: 12, name: 'Pizza Cebolla y roquefort',     price: 12500, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/ROQUEFORT-Y-CARAMELIZADA.jpg' },
+  { id: 13, name: 'Pizza Champignon y parmesano',  price: 12500, cat: 'PIZZAS',      emoji: '🍕', badge: '',        img: 'images/productos/CHAMPI-Y-PARMESANO.jpg' },
   // EMPANADAS
-  { id: 14, name: 'Empanadas Jamón y queso',       price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: '' },
-  { id: 15, name: 'Empanadas Cebolla y queso',     price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: '' },
-  { id: 16, name: 'Empanadas Bondiola braseada',   price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: 'images/productos/empanada-de-bondiola.jpg' },
-  { id: 17, name: 'Empanadas Pollo al verdeo',     price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: '' },
-  { id: 18, name: 'Empanadas Espinaca y parmesano',price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: '' },
-  { id: 19, name: 'Empanadas Carne a cuchillo',    price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: '' },
-  { id: 20, name: 'Empanadas Capresse',            price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: '' },
-  { id: 21, name: 'Empanadas Mix de hongos',       price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: '' },
+  { id: 14, name: 'Empanadas Jamón y queso',       price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: 'images/productos/EMPANADA-JAMON-Y-QUESO-Y-VERDURA.jpg' },
+  { id: 15, name: 'Empanadas Cebolla y queso',     price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: 'images/productos/EMPANADA-CEBOLLA-Y-QUESO-HONGOS-CAPRESE.jpg' },
+  { id: 16, name: 'Empanadas Bondiola braseada',   price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: 'images/productos/EMPANADA-BONDIOLA.jpg' },
+  { id: 17, name: 'Empanadas Pollo al verdeo',     price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: 'images/productos/EMPANADA-POLLO_.jpg' },
+  { id: 18, name: 'Empanadas Espinaca y parmesano',price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: 'images/productos/EMPANADA-JAMON-Y-QUESO-Y-VERDURA.jpg' },
+  { id: 19, name: 'Empanadas Carne a cuchillo',    price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: 'images/productos/EMPANADA-CARNE.jpg' },
+  { id: 20, name: 'Empanadas Capresse',            price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: 'images/productos/EMPANADA-CEBOLLA-Y-QUESO-HONGOS-CAPRESE.jpg' },
+  { id: 21, name: 'Empanadas Mix de hongos',       price: 15180, cat: 'EMPANADAS',   emoji: '🥟', badge: '',        img: 'images/productos/EMPANADA-CEBOLLA-Y-QUESO-HONGOS-CAPRESE.jpg' },
   // TARTAS
-  { id: 22, name: 'Tarta Jamón y queso',           price: 11385, cat: 'TARTAS',      emoji: '🥧', badge: '',        img: '' },
-  { id: 23, name: 'Tarta Tres cebollas',           price: 11385, cat: 'TARTAS',      emoji: '🥧', badge: '',        img: '' },
-  { id: 24, name: 'Tarta Zapallo',                 price: 11385, cat: 'TARTAS',      emoji: '🥧', badge: '',        img: 'images/productos/tarta-de-zapallo.jpg' },
-  { id: 25, name: 'Tarta Pollo puerro y panceta',  price: 11385, cat: 'TARTAS',      emoji: '🥧', badge: '',        img: '' },
-  { id: 26, name: 'Tarta Vegetales asados',        price: 11385, cat: 'TARTAS',      emoji: '🥧', badge: '',        img: '' },
+  { id: 22, name: 'Tarta Jamón y queso',           price: 11385, cat: 'TARTAS',      emoji: '🥧', badge: '',        img: 'images/productos/TARTA-JAMON-Y-QUESO.jpg' },
+  { id: 23, name: 'Tarta Tres cebollas',           price: 11385, cat: 'TARTAS',      emoji: '🥧', badge: '',        img: 'images/productos/TARTA-3-QUESOS-3-CEBOLLAS.jpg' },
+  { id: 24, name: 'Tarta Zapallo',                 price: 11385, cat: 'TARTAS',      emoji: '🥧', badge: '',        img: 'images/productos/TARTA-ZAPALLO.jpg' },
+  { id: 25, name: 'Tarta Pollo puerro y panceta',  price: 11385, cat: 'TARTAS',      emoji: '🥧', badge: '',        img: 'images/productos/TARTA-POLLO-PUERRO-PANCETA.jpg' },
+  { id: 26, name: 'Tarta Vegetales asados',        price: 11385, cat: 'TARTAS',      emoji: '🥧', badge: '',        img: 'images/productos/TARTA-VEGETALES.jpg' },
   // SIN TACC
-  { id: 27, name: 'Pizza Muzzarella SIN TACC',     price: 11320, cat: 'SIN TACC',    emoji: '🌾', badge: 'sintacc', img: 'images/productos/pizza-muzzarella.jpg' },
+  { id: 27, name: 'Pizza Muzzarella SIN TACC',     price: 12000, cat: 'SIN TACC',    emoji: '🌾', badge: 'sintacc', img: 'images/productos/MUZZARELLA.jpg' },
   // MILANESAS
-  { id: 28, name: 'Milanesas de Peceto 500g',      price: 16951, cat: 'MILANESAS',   emoji: '🥩', badge: '',        img: '' },
-  { id: 29, name: 'Milanesas de Pollo 1kg',        price: 18975, cat: 'MILANESAS',   emoji: '🥩', badge: '',        img: '' },
+  { id: 28, name: 'Milanesas de Peceto 500g',      price: 17000, cat: 'MILANESAS',   emoji: '🥩', badge: '',        img: 'images/productos/MILANESA-CARNE.jpg' },
+  { id: 29, name: 'Milanesas de Pollo 1kg',        price: 19000, cat: 'MILANESAS',   emoji: '🥩', badge: '',        img: 'images/productos/MILANESA-POLLO.jpg' },
 ];
 
 // ============================================================
@@ -59,5 +59,6 @@ const ZONAS = {
 // CUPONES DE DESCUENTO — { 'CODIGO': porcentaje (0.10 = 10%) }
 // ============================================================
 const CUPONES = {
-  // 'PROMO10': 0.10,
+  'EDS10': 0.10,
+  'PEDRO10': 0.10,
 };
