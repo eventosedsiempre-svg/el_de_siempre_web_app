@@ -19,6 +19,8 @@ let currentFilter = 'Todos';
 let modalQtyVal = 1;
 let selectedZoneKey = '';
 let appliedCoupon = null;
+let appliedCouponPromo = null;   // el cupón aplicado con sus reglas (del panel o de CUPONES en js/data.js)
+let PROMOS = [];                 // promos automáticas y cupones anunciados (tabla promociones, ver supabase/promociones.sql)
 let currentVideoSlot = 0;
 let currentUser = null;
 let myOrders = [];
@@ -116,6 +118,7 @@ async function init() {
   renderShopProducts(products);
   renderProductEditList();
   renderWeeklyChart();
+  loadPromos();
 
   document.getElementById('regZone').addEventListener('change', function () {
     document.getElementById('otherZoneGroup').style.display = this.value === 'Otra zona' ? 'block' : 'none';
@@ -177,6 +180,28 @@ async function loadCurrentUser(authUser) {
 }
 
 // ===== RENDER =====
+// ===== PROMOCIONES =====
+// Si la tabla todavía no existe en Supabase la tienda sigue igual, sin promos
+async function loadPromos() {
+  const { data, error } = await sb.from('promociones').select('*');
+  if (error) { console.warn('promociones no disponible:', error.message); return; }
+  PROMOS = data || [];
+  refreshPromoViews();
+}
+
+// Vuelve a dibujar todo lo que muestra precios con promo
+function refreshPromoViews() {
+  renderFeaturedProducts();
+  filterProducts(document.getElementById('searchInput')?.value || '');
+  updateCartUI();
+}
+
+function cartTotals() {
+  return calcularCarrito(cart, PROMOS, appliedCouponPromo, argentinaHoy());
+}
+
+function money(n) { return '$' + Math.round(n).toLocaleString('es-AR'); }
+
 function catHasProducts(cat) { return products.some(p => p.cat === cat); }
 
 function renderHomeCats() {
@@ -419,14 +444,15 @@ function updateCartUI() {
   if (!cart.length) {
     el.innerHTML = '<div class="empty-cart"><div style="font-size:44px;margin-bottom:9px">🛒</div><p>Tu carrito está vacío</p></div>';
   } else {
-    el.innerHTML = cart.map(item => {
+    el.innerHTML = cartTotals().items.map(item => {
       const img = item.img ? `<img src="${item.img}" alt="">` : item.emoji;
       return `
         <div class="cart-item">
           <div class="cart-item-img">${img}</div>
           <div style="flex:1">
             <div class="cart-item-name">${item.name}</div>
-            <div class="cart-item-price">$${item.price.toLocaleString('es-AR')} c/u</div>
+            <div class="cart-item-price">${item.promo ? `<s class="price-old">${money(item.precioOriginal)}</s> <span class="price-promo">${money(item.precio)}</span>` : money(item.precio)} c/u</div>
+            ${item.promo ? `<div class="promo-tag">🔥 ${escapeHtml(item.promo.texto || item.promo.nombre)}</div>` : ''}
             <div class="cart-qty">
               <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
               <span class="qty-num">${item.qty}</span>
@@ -437,40 +463,53 @@ function updateCartUI() {
         </div>`;
     }).join('');
   }
-  const sub  = cart.reduce((a, b) => a + b.price * b.qty, 0);
-  const disc = getDiscount(sub);
-  document.getElementById('cartSubtotal').textContent    = '$' + sub.toLocaleString('es-AR');
-  document.getElementById('cartShipDisplay').textContent = selectedZoneKey === '' ? 'Seleccioná zona en checkout' : getShipCostDisplay(sub);
-  document.getElementById('discountRow').style.display   = disc > 0 ? 'flex' : 'none';
-  if (disc > 0) document.getElementById('discountAmt').textContent = '-$' + disc.toLocaleString('es-AR');
-  document.getElementById('cartTotal').textContent       = selectedZoneKey === '' ? 'Ver en checkout' : '$' + getTotal(sub).toLocaleString('es-AR');
+  const t = cartTotals();
+  document.getElementById('cartSubtotal').textContent    = money(t.subtotalOriginal);
+  renderTotalsDiscounts(t, 'cart');
+  document.getElementById('cartShipDisplay').textContent = selectedZoneKey === '' ? 'Seleccioná zona en checkout' : getShipCostDisplay(t.totalSinEnvio);
+  document.getElementById('cartTotal').textContent       = selectedZoneKey === '' ? 'Ver en checkout' : money(getTotal(t));
   updateOrderSummary();
 }
 
-function getShipCost(sub) {
+// Filas de promo y cupón del carrito ('cart') o del resumen del checkout ('summary')
+function renderTotalsDiscounts(t, where) {
+  const ids = where === 'cart'
+    ? { promoRow: 'promoRow', promoLabel: 'promoLabel', promoAmt: 'promoAmt', discRow: 'discountRow', discLabel: 'discountLabel', discAmt: 'discountAmt' }
+    : { promoRow: 'summaryPromoRow', promoLabel: 'summaryPromoLabel', promoAmt: 'summaryPromoAmt', discRow: 'summaryDiscountRow', discLabel: 'summaryDiscountLabel', discAmt: 'summaryDiscountAmt' };
+  const el = id => document.getElementById(id);
+  if (!el(ids.promoRow)) return;
+  el(ids.promoRow).style.display = t.descuentoPromos > 0 ? 'flex' : 'none';
+  if (t.descuentoPromos > 0) {
+    el(ids.promoLabel).textContent = '🔥 ' + (t.promosAplicadas.length === 1 ? t.promosAplicadas[0] : 'Promos');
+    el(ids.promoAmt).textContent   = '-' + money(t.descuentoPromos);
+  }
+  el(ids.discRow).style.display = t.cupon.descuento > 0 ? 'flex' : 'none';
+  if (t.cupon.descuento > 0) {
+    el(ids.discLabel).textContent = '🏷️ Cupón ' + appliedCoupon;
+    el(ids.discAmt).textContent   = '-' + money(t.cupon.descuento);
+  }
+}
+
+// El envío gratis se decide con el precio final (con promos y cupón, sin el envío)
+function getShipCost(totalSinEnvio) {
   if (!selectedZoneKey) return 0;
   const zone = ZONES[selectedZoneKey];
   if (!zone) return 0;
   if (zone.pickup) return 0;
-  if (sub >= FREE_SHIPPING_MIN) return 0;
+  if (totalSinEnvio >= FREE_SHIPPING_MIN) return 0;
   return zone.cost;
 }
 
-function getShipCostDisplay(sub) {
+function getShipCostDisplay(totalSinEnvio) {
   if (!selectedZoneKey) return '—';
   const zone = ZONES[selectedZoneKey];
   if (!zone) return '—';
   if (zone.pickup) return 'Gratis (retiro)';
-  if (sub >= FREE_SHIPPING_MIN) return 'Gratis 🎉';
+  if (totalSinEnvio >= FREE_SHIPPING_MIN) return 'Gratis 🎉';
   return '$' + zone.cost.toLocaleString('es-AR');
 }
 
-function getDiscount(sub) {
-  if (!appliedCoupon || !COUPONS[appliedCoupon]) return 0;
-  return Math.round(sub * COUPONS[appliedCoupon]);
-}
-
-function getTotal(sub) { return sub + getShipCost(sub) - getDiscount(sub); }
+function getTotal(t) { return t.totalSinEnvio + getShipCost(t.totalSinEnvio); }
 
 function changeQty(id, d) {
   const i = cart.find(x => x.id === id);
@@ -487,34 +526,35 @@ function removeFromCart(id) {
 
 async function applyCoupon() {
   const code = document.getElementById('couponInput').value.trim().toUpperCase();
-
-  if (!COUPONS[code]) {
-    appliedCoupon = null;
-    updateCartUI();
-    showToast('❌ Cupón no válido');
-    return;
-  }
-
-  if (!currentUser) {
-    appliedCoupon = null;
-    updateCartUI();
-    showToast('❌ Iniciá sesión para usar este cupón');
-    return;
-  }
+  const clear = msg => { appliedCoupon = null; appliedCouponPromo = null; updateCartUI(); showToast('❌ ' + msg, 4000); };
+  if (!code) return;
 
   try {
-    const used = await selectOrders({ user_id: currentUser.id, coupon: code });
+    // Primero los cupones del panel; si no está, los fijos de js/data.js
+    let cupon = null;
+    const { data, error } = await sb.rpc('validar_cupon', { p_codigo: code });
+    if (error) console.warn('validar_cupon no disponible:', error.message);
+    else if (data?.length) cupon = data[0];
+    if (!cupon && COUPONS[code]) cupon = cuponDesdeFijo(code, COUPONS[code]);
+    if (!cupon) return clear('Cupón no válido');
 
-    if (used?.length) {
-      appliedCoupon = null;
-      updateCartUI();
-      showToast('❌ Ya usaste este cupón antes');
-      return;
+    if (!currentUser) return clear('Iniciá sesión para usar este cupón');
+
+    const noVigente = motivoCuponNoVigente(cupon);
+    if (noVigente) return clear(noVigente);
+
+    if (cupon.un_uso !== false) {
+      const used = await selectOrders({ user_id: currentUser.id, coupon: code });
+      if (used?.length) return clear('Ya usaste este cupón antes');
     }
 
-    appliedCoupon = code;
+    const t = calcularCarrito(cart, PROMOS, cupon, argentinaHoy());
+    if (!t.cupon.descuento) return clear(t.cupon.motivo || 'Este cupón no aplica a tu carrito');
+
+    appliedCoupon      = code;
+    appliedCouponPromo = cupon;
     updateCartUI();
-    showToast('🎉 Cupón aplicado: ' + Math.round(COUPONS[code] * 100) + '% off');
+    showToast('🎉 Cupón aplicado: -' + money(t.cupon.descuento));
   } catch (e) {
     console.error('applyCoupon error:', e);
     showToast('❌ Error al validar el cupón, intentá de nuevo');
@@ -575,21 +615,19 @@ function goCheckout() {
 function updateOrderSummary() {
   const el = document.getElementById('orderSummaryItems');
   if (!el) return;
-  el.innerHTML = cart.map(item => {
+  const t = cartTotals();
+  el.innerHTML = t.items.map(item => {
     const img = item.img ? `<img src="${item.img}" alt="">` : item.emoji;
     return `
       <div class="oi-row">
-        <div class="oi-name"><div class="oi-emoji">${img}</div><span>${item.name} x${item.qty}</span></div>
-        <span>$${(item.price * item.qty).toLocaleString('es-AR')}</span>
+        <div class="oi-name"><div class="oi-emoji">${img}</div><span>${item.name} x${item.qty}${item.promo ? `<br><span class="promo-tag">🔥 ${escapeHtml(item.promo.texto || item.promo.nombre)}</span>` : ''}</span></div>
+        <span style="text-align:right;white-space:nowrap">${item.promo ? `<s class="price-old">${money(item.precioOriginal * item.qty)}</s><br><span class="price-promo">${money(item.precio * item.qty)}</span>` : money(item.precio * item.qty)}</span>
       </div>`;
   }).join('');
-  const sub  = cart.reduce((a, b) => a + b.price * b.qty, 0);
-  const disc = getDiscount(sub);
-  if (document.getElementById('summarySubtotal')) document.getElementById('summarySubtotal').textContent = '$' + sub.toLocaleString('es-AR');
-  if (document.getElementById('summaryShip'))     document.getElementById('summaryShip').textContent     = getShipCostDisplay(sub);
-  if (document.getElementById('summaryDiscountRow')) document.getElementById('summaryDiscountRow').style.display = disc > 0 ? 'flex' : 'none';
-  if (disc > 0 && document.getElementById('summaryDiscountAmt')) document.getElementById('summaryDiscountAmt').textContent = '-$' + disc.toLocaleString('es-AR');
-  if (document.getElementById('summaryTotal'))    document.getElementById('summaryTotal').textContent    = selectedZoneKey ? '$' + getTotal(sub).toLocaleString('es-AR') : 'Seleccioná zona';
+  if (document.getElementById('summarySubtotal')) document.getElementById('summarySubtotal').textContent = money(t.subtotalOriginal);
+  if (document.getElementById('summaryShip'))     document.getElementById('summaryShip').textContent     = getShipCostDisplay(t.totalSinEnvio);
+  renderTotalsDiscounts(t, 'summary');
+  if (document.getElementById('summaryTotal'))    document.getElementById('summaryTotal').textContent    = selectedZoneKey ? money(getTotal(t)) : 'Seleccioná zona';
 }
 
 // ===== CHECKOUT =====
@@ -601,8 +639,7 @@ function onZoneChange() {
   if (!selectedZoneKey) { zoneInfo.style.display = 'none'; addressCard.style.display = 'none'; return; }
   const zone = ZONES[selectedZoneKey];
   if (!zone) return;
-  const sub    = cart.reduce((a, b) => a + b.price * b.qty, 0);
-  const isFree = sub >= FREE_SHIPPING_MIN;
+  const isFree = cartTotals().totalSinEnvio >= FREE_SHIPPING_MIN;
   document.getElementById('zoneInfoName').textContent = zone.name;
   if (zone.pickup) {
     document.getElementById('zoneInfoDesc').textContent = 'Retirás en Rincón de Milberg. Te confirmamos el horario por WhatsApp.';
@@ -665,10 +702,10 @@ async function confirmOrder() {
 
   try {
     const num           = '#EDS-' + String(Math.floor(Math.random() * 89999) + 10000);
-    const sub           = cart.reduce((a, b) => a + b.price * b.qty, 0);
-    const ship          = getShipCost(sub);
-    const disc          = getDiscount(sub);
-    const total         = sub + ship - disc;
+    const t             = cartTotals();
+    const ship          = getShipCost(t.totalSinEnvio);
+    const disc          = t.cupon.descuento;
+    const total         = t.totalSinEnvio + ship;
     const zoneName      = selectedZoneKey ? ZONES[selectedZoneKey]?.name : '—';
     const itemsList     = cart.map(i => i.name + ' x' + i.qty).join(', ');
     const clienteNombre = (document.getElementById('ckName').value + ' ' + document.getElementById('ckLast').value).trim();
@@ -690,9 +727,9 @@ async function confirmOrder() {
       zone:      zoneName,
       direccion,
       status:    'Recibido',
-      coupon:    appliedCoupon || null,
+      coupon:    disc > 0 ? appliedCoupon : null,
       discount:  Math.round(disc),
-      items_detalle: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
+      items_detalle: t.items.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.precio })),
     };
 
     let insertError = await insertOrder(order);
@@ -719,6 +756,7 @@ async function confirmOrder() {
     cart = [];
     selectedZoneKey = '';
     appliedCoupon = null;
+    appliedCouponPromo = null;
     updateCartUI();
     showPage('confirm');
     if (isAdmin) updateAdminStats();
