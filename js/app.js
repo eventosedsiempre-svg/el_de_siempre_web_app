@@ -21,6 +21,7 @@ let selectedZoneKey = '';
 let appliedCoupon = null;
 let currentVideoSlot = 0;
 let currentUser = null;
+let myOrders = [];
 
 // ===== UTILIDADES =====
 async function sha256(str) {
@@ -266,14 +267,11 @@ function renderOrdersInTable(orders) {
           </td>
           <td>${o.zone || '—'}${o.direccion && o.direccion !== 'Retiro en local' ? ' — ' + o.direccion : ''}</td>
           <td>$${o.total.toLocaleString('es-AR')}${o.coupon ? ` <span style="display:inline-block;margin-left:4px;background:#dcfce7;color:#16a34a;border-radius:6px;padding:2px 6px;font-size:10px;font-weight:600">🏷️ ${o.coupon}</span>` : ''}</td>
-          <td><span class="order-status ${o.status === 'Entregado' ? 'status-delivered' : o.status === 'En camino' ? 'status-processing' : 'status-pending'}">${o.status}</span></td>
+          <td><span class="order-status ${statusClass(o.status)}">${statusLabel(o.status)}</span></td>
           <td style="display:flex;gap:6px;align-items:center">
             <button onclick="openOrderDetail(${JSON.stringify(o).replace(/"/g,'&quot;')})" style="background:none;border:1px solid var(--border);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center" title="Ver detalle">ⓘ</button>
             <select onchange="updateOrderStatus('${o.id}',this.value)" style="font-size:11px;border:1px solid var(--border);border-radius:var(--rs);padding:3px 6px">
-              <option ${o.status === 'Pendiente'  ? 'selected' : ''}>Pendiente</option>
-              <option ${o.status === 'En camino'  ? 'selected' : ''}>En camino</option>
-              <option ${o.status === 'Entregado'  ? 'selected' : ''}>Entregado</option>
-              <option ${o.status === 'Cancelado'  ? 'selected' : ''}>Cancelado</option>
+              ${ORDER_STATUSES.map(s => `<option ${statusLabel(o.status) === s ? 'selected' : ''}>${s}</option>`).join('')}
             </select>
           </td>
         </tr>`).join('')
@@ -281,21 +279,23 @@ function renderOrdersInTable(orders) {
   });
 }
 
-function openOrderDetail(o) {
+// forCustomer: vista de "Mis pedidos" (sin datos de contacto, con estado destacado)
+function openOrderDetail(o, forCustomer = false) {
   const disc  = o.discount || 0;
   const sub   = o.total - (o.ship || 0) + disc;
-  const items = (o.items || '').split(',').map(i => i.trim()).filter(Boolean);
-  document.getElementById('odTitle').textContent = o.id;
-  const registradoBadge = o.user_id ? ' <span style="background:#dcfce7;color:#16a34a;border-radius:4px;padding:1px 5px;font-size:10px;font-weight:600">✓ Registrado</span>' : ' <span style="background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 5px;font-size:10px;font-weight:600">Invitado</span>';
-  document.getElementById('odMeta').innerHTML  = `${o.date} · ${o.user_name || '—'}${registradoBadge} · ${o.status}` + (o.email || o.phone ? `<br><span style="font-size:11px">${o.email || ''}${o.phone ? ' · ' + o.phone : ''}</span>` : '');
-  document.getElementById('odItems').innerHTML   = items.map(item => {
-    const match = item.match(/^(.+)\s+x(\d+)$/);
-    const name  = match ? match[1] : item;
-    const qty   = match ? match[2] : '1';
-    return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <span>${name}</span><span style="font-weight:600;color:var(--black)">x${qty}</span>
-    </div>`;
-  }).join('');
+  const items = parseOrderItems(o);
+  document.getElementById('odTitle').textContent = 'Pedido ' + o.id;
+  if (forCustomer) {
+    document.getElementById('odMeta').innerHTML = `${escapeHtml(o.date)} · <span class="order-status ${statusClass(o.status)}">${statusLabel(o.status)}</span>`;
+  } else {
+    const registradoBadge = o.user_id ? ' <span style="background:#dcfce7;color:#16a34a;border-radius:4px;padding:1px 5px;font-size:10px;font-weight:600">✓ Registrado</span>' : ' <span style="background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 5px;font-size:10px;font-weight:600">Invitado</span>';
+    document.getElementById('odMeta').innerHTML  = `${o.date} · ${o.user_name || '—'}${registradoBadge} · ${statusLabel(o.status)}` + (o.email || o.phone ? `<br><span style="font-size:11px">${o.email || ''}${o.phone ? ' · ' + o.phone : ''}</span>` : '');
+  }
+  document.getElementById('odItems').innerHTML   = items.map(item => `
+    <div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>${escapeHtml(item.name)} <span style="font-weight:600;color:var(--black)">x${item.qty}</span>${item.price != null ? `<span style="color:var(--gray);font-size:11px"> · $${item.price.toLocaleString('es-AR')} c/u</span>` : ''}</span>
+      <span style="font-weight:600;white-space:nowrap">${item.price != null ? '$' + (item.price * item.qty).toLocaleString('es-AR') : ''}</span>
+    </div>`).join('') || '<p style="font-size:13px;color:var(--gray)">Sin detalle de productos</p>';
   document.getElementById('odSubtotal').textContent = '$' + sub.toLocaleString('es-AR');
   document.getElementById('odShip').textContent     = o.ship ? '$' + Number(o.ship).toLocaleString('es-AR') : 'Gratis';
   const couponRow = document.getElementById('odCouponRow');
@@ -310,7 +310,7 @@ function openOrderDetail(o) {
   const addr = [o.zone, o.direccion].filter(x => x && x !== 'Retiro en local').join(' — ');
   document.getElementById('odAddress').innerHTML    = o.direccion === 'Retiro en local'
     ? '📍 Retiro en local'
-    : addr ? '📍 ' + addr : '';
+    : addr ? '📍 ' + escapeHtml(addr) : '';
   const modal = document.getElementById('orderDetailModal');
   modal.style.display = 'flex';
 }
@@ -632,12 +632,13 @@ async function confirmOrder() {
       ship:      Math.round(ship),
       zone:      zoneName,
       direccion,
-      status:    'Pendiente',
+      status:    'Recibido',
       coupon:    appliedCoupon || null,
       discount:  Math.round(disc),
+      items_detalle: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
     };
 
-    const res = await fetch(SUPABASE_URL + '/rest/v1/orders', {
+    const postOrder = body => fetch(SUPABASE_URL + '/rest/v1/orders', {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_ANON_KEY,
@@ -645,8 +646,17 @@ async function confirmOrder() {
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal',
       },
-      body: JSON.stringify(order),
+      body: JSON.stringify(body),
     });
+
+    let res = await postOrder(order);
+    if (!res.ok) {
+      // Si la base todavía no tiene la columna items_detalle (o no acepta el estado nuevo),
+      // guardamos el pedido como antes para no perder la venta
+      console.warn('Insert con detalle falló, reintento sin detalle:', await res.text());
+      const { items_detalle, ...legacy } = order;
+      res = await postOrder({ ...legacy, status: 'Pendiente' });
+    }
 
     if (!res.ok) {
       const msg = await res.text();
@@ -986,32 +996,38 @@ async function showAccountTab(tab, el) {
       el2.innerHTML = '<p style="color:var(--gray);font-size:14px">Iniciá sesión para ver tus pedidos.</p>';
       return;
     }
+    // Solo los pedidos de esta cuenta (antes también buscaba por nombre y podía mostrar pedidos de otra persona)
     const hdrs = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
-    let orders = await fetch(
+    const orders = await fetch(
       SUPABASE_URL + '/rest/v1/orders?user_id=eq.' + currentUser.id + '&order=created_at.desc',
       { headers: hdrs }
     ).then(r => r.json()).catch(() => []);
-    if (!orders?.length && currentUser?.name) {
-      const byName = await fetch(
-        SUPABASE_URL + '/rest/v1/orders?user_name=eq.' + encodeURIComponent(currentUser.name) + '&order=created_at.desc',
-        { headers: hdrs }
-      ).then(r => r.json()).catch(() => []);
-      if (byName?.length) orders = byName;
-    }
-    el2.innerHTML = orders && orders.length
-      ? orders.map(o => `
-        <div class="order-row">
-          <div>
-            <div style="font-weight:500">${o.id}</div>
-            <div style="font-size:12px;color:var(--gray)">${o.items} · ${o.date} · ${o.zone || '—'}</div>
-          </div>
-          <div style="text-align:right">
-            <div class="order-status ${o.status === 'Entregado' ? 'status-delivered' : o.status === 'En camino' ? 'status-processing' : 'status-pending'}">${o.status}</div>
-            <div style="font-weight:600;font-size:13px;margin-top:3px">$${o.total.toLocaleString('es-AR')}</div>
-          </div>
-        </div>`).join('')
-      : '<p style="color:var(--gray);font-size:14px">Todavía no tenés pedidos.</p>';
+    myOrders = Array.isArray(orders) ? orders : [];
+    renderMyOrders();
   }
+}
+
+function renderMyOrders() {
+  const el = document.getElementById('myOrdersList');
+  el.innerHTML = myOrders.length
+    ? myOrders.map((o, i) => `
+      <div class="order-row order-row-click" onclick="openMyOrder(${i})">
+        <div style="min-width:0">
+          <div style="font-weight:500">${escapeHtml(o.id)}</div>
+          <div class="order-row-items">${escapeHtml(parseOrderItems(o).map(it => it.name + ' x' + it.qty).join(', '))}</div>
+          <div style="font-size:12px;color:var(--gray)">${escapeHtml(o.date)} · ${escapeHtml(o.zone || '—')}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="order-status ${statusClass(o.status)}">${statusLabel(o.status)}</div>
+          <div style="font-weight:600;font-size:13px;margin-top:3px">$${Number(o.total).toLocaleString('es-AR')}</div>
+          <div class="order-row-more">Ver detalle ›</div>
+        </div>
+      </div>`).join('')
+    : '<p style="color:var(--gray);font-size:14px">Todavía no tenés pedidos.</p>';
+}
+
+function openMyOrder(i) {
+  if (myOrders[i]) openOrderDetail(myOrders[i], true);
 }
 
 // ===== ADMIN =====
@@ -1053,7 +1069,7 @@ async function updateAdminStats() {
     sb.from('orders').select('*', { count: 'exact', head: true }),
     sb.from('catering_leads').select('*', { count: 'exact', head: true }),
     sb.from('mayorista_leads').select('*', { count: 'exact', head: true }),
-    sb.from('orders').select('total, created_at, id, date, user_name, zone, direccion, status').order('created_at', { ascending: false }),
+    sb.from('orders').select('*').order('created_at', { ascending: false }),
     sb.from('profiles').select('created_at').order('created_at', { ascending: false }),
   ]);
 

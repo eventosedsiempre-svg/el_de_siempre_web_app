@@ -47,3 +47,11 @@ En **Authentication → Emails → Templates → Reset Password**:
 <p>El link vence en 1 hora. Si no fuiste vos, ignorá este mail: tu contraseña sigue igual.</p>
 <p>— El de Siempre</p>
 ```
+
+## 5. Cambios en la base de datos
+
+1. Abrí el archivo [`supabase/tanda2.sql`](../supabase/tanda2.sql) y copiá todo su contenido.
+2. En Supabase andá a **SQL Editor → New query**, pegalo y tocá **Run**.
+3. Tiene que decir "Success". Solo agrega cosas, no cambia ni borra pedidos ni usuarios, y se puede correr más de una vez.
+
+Conviene hacerlo **antes** de publicar los cambios. Si igual se publica antes, los pedidos se siguen guardando como hasta ahora (sin el precio por producto).
