@@ -39,7 +39,11 @@ async function init() {
     },
   });
 
-  products = PRODUCTOS;
+  products = PRODUCTOS.filter(p => p.activo !== false);
+  // Ocultar links a categorías que quedaron sin productos activos
+  document.querySelectorAll('[data-cat]').forEach(el => {
+    if (!catHasProducts(el.dataset.cat)) el.style.display = 'none';
+  });
   ZONES    = ZONAS;
   COUPONS  = CUPONES;
 
@@ -126,8 +130,10 @@ async function loadCurrentUser(authUser) {
 }
 
 // ===== RENDER =====
+function catHasProducts(cat) { return products.some(p => p.cat === cat); }
+
 function renderHomeCats() {
-  document.getElementById('homeCats').innerHTML = CATS_DEF.map(c => `
+  document.getElementById('homeCats').innerHTML = CATS_DEF.filter(c => c.name === 'CATERING' || catHasProducts(c.name)).map(c => `
     <div class="cat-card" onclick="${c.name === 'CATERING' ? "showPage('catering')" : `filterAndShow('${c.name}')`}">
       <div class="cat-emoji">${c.emoji}</div>
       <div class="cat-name">${c.label}</div>
@@ -136,16 +142,18 @@ function renderHomeCats() {
 }
 
 function renderFeaturedProducts() {
-  const ids = [1, 19, 4, 28];
+  // Se muestran los primeros 4 activos: si las milanesas (28) están desactivadas entra la tarta (22)
+  const ids = [1, 19, 4, 28, 22];
   document.getElementById('featuredProducts').innerHTML = ids
     .map(id => products.find(p => p.id === id))
     .filter(Boolean)
+    .slice(0, 4)
     .map(productCard)
     .join('');
 }
 
 function renderShopCats() {
-  const all = [{ name: 'Todos', emoji: '🛒', label: 'Todos' }, ...CATS_DEF.filter(c => c.name !== 'CATERING')];
+  const all = [{ name: 'Todos', emoji: '🛒', label: 'Todos' }, ...CATS_DEF.filter(c => c.name !== 'CATERING' && catHasProducts(c.name))];
   document.getElementById('shopCats').innerHTML = all.map(c => `
     <div class="cat-card${c.name === currentFilter ? ' active' : ''}" onclick="setFilter('${c.name}',this)">
       <div class="cat-emoji">${c.emoji}</div>

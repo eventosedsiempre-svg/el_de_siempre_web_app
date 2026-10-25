@@ -100,7 +100,7 @@
         <div class="hero-tag">Zona Norte GBA y alrededores</div>
         <p style="color:var(--accent);font-size:13px;font-weight:600;letter-spacing:0.5px;margin-bottom:10px">— LA COMIDA DE SIEMPRE, CUANDO MÁS LA NECESITÁS</p>
         <h1 class="hero-title">Lo casero tiene<br><em>otro sabor.</em></h1>
-        <p class="hero-sub">Pizzas, empanadas y milanesas artesanales, listas para calentar. Y cuando querés celebrar en grande, estamos para eso también.</p>
+        <p class="hero-sub">Pizzas, empanadas y tartas artesanales, listas para calentar. Y cuando querés celebrar en grande, estamos para eso también.</p>
         <button class="btn-primary" onclick="showPage('shop')">Ver productos →</button>
         <button class="btn-secondary" onclick="showPage('catering')">Eventos</button>
       </div>
@@ -108,7 +108,7 @@
         <div class="hero-card" onclick="filterAndShow('PROMOCIONES')"><div class="hero-card-emoji">🔥</div><h3>Promociones</h3><p>Packs con el mejor precio</p></div>
         <div class="hero-card" onclick="filterAndShow('PIZZAS')"><div class="hero-card-emoji">🍕</div><h3>Pizzas artesanales</h3><p>10 variedades</p></div>
         <div class="hero-card" onclick="filterAndShow('EMPANADAS')"><div class="hero-card-emoji">🥟</div><h3>Empanadas</h3><p>8 rellenos — caja de 6 unidades</p></div>
-        <div class="hero-card" onclick="filterAndShow('MILANESAS')"><div class="hero-card-emoji">🥩</div><h3>Milanesas</h3><p>Peceto y pollo fraccionadas</p></div>
+        <div class="hero-card" data-cat="MILANESAS" onclick="filterAndShow('MILANESAS')"><div class="hero-card-emoji">🥩</div><h3>Milanesas</h3><p>Peceto y pollo fraccionadas</p></div>
       </div>
     </div>
   </section>
@@ -281,7 +281,7 @@
             <li onclick="filterAndShow('PIZZAS')">Pizzas</li>
             <li onclick="filterAndShow('EMPANADAS')">Empanadas</li>
             <li onclick="filterAndShow('TARTAS')">Tartas</li>
-            <li onclick="filterAndShow('MILANESAS')">Milanesas</li>
+            <li data-cat="MILANESAS" onclick="filterAndShow('MILANESAS')">Milanesas</li>
           </ul>
         </div>
         <div class="footer-col">
@@ -329,7 +329,7 @@
         <div class="section-label" style="color:rgba(255,255,255,0.4)">Quiénes somos</div>
         <h2>Comida de verdad,<br><em>hecha con amor</em></h2>
         <p>Somos El de Siempre, una cocina familiar de Zona Norte del GBA especializada en comida congelada artesanal para el hogar.</p>
-        <p>Cada pizza, empanada, tarta y milanesa sale de nuestras manos usando ingredientes frescos y recetas propias. Sin conservantes, sin aditivos.</p>
+        <p>Cada pizza, empanada y tarta sale de nuestras manos usando ingredientes frescos y recetas propias. Sin conservantes, sin aditivos.</p>
         <p>También nos especializamos en todo tipo de eventos — pizza parties íntimas, cumpleaños, reuniones corporativas, casamientos y mucho más. Si lo podés imaginar, nosotros lo cocinamos.</p>
         <div class="nosotros-stats">
           <div class="nosotros-stat"><div class="nosotros-stat-num">+50</div><div class="nosotros-stat-label">eventos realizados en el último año</div></div>
