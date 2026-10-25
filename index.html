@@ -705,6 +705,7 @@
       <div class="admin-nav-item active" onclick="showAdminTab('dashboard',this)">Dashboard</div>
       <div class="admin-nav-item" onclick="showAdminTab('products',this)">Productos</div>
       <div class="admin-nav-item" onclick="showAdminTab('orders',this)">Pedidos</div>
+      <div class="admin-nav-item" onclick="showAdminTab('promos',this)">Promociones</div>
       <div class="admin-nav-item" onclick="showAdminTab('customers',this)">Clientes</div>
       <div class="admin-nav-item" onclick="showAdminTab('catering',this)">Eventos</div>
       <div class="admin-nav-item" onclick="showAdminTab('mayorista',this)">Revendedores</div>
@@ -740,6 +741,65 @@
       <div style="font-size:14px;font-weight:600;margin-bottom:6px">Gestión de productos</div>
       <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Para cambiar precios o agregar productos editá el archivo <strong>js/data.js</strong> directamente.</p>
       <div id="productEditList"></div>
+    </div>
+
+    <!-- Promociones -->
+    <div id="adminPromos" style="display:none">
+      <div class="promo-admin-head">
+        <div>
+          <div style="font-size:14px;font-weight:600">Promociones y cupones</div>
+          <p style="font-size:12px;color:var(--gray);margin-top:3px">Sin código se aplican solas. Con código funcionan como cupón. Se prenden y apagan solas según fecha y día (hora de Argentina).</p>
+        </div>
+        <button class="edit-btn promo-new-btn" onclick="openPromoForm()">+ Nueva promo</button>
+      </div>
+
+      <div class="section-card" id="promoForm" style="display:none">
+        <h3 id="promoFormTitle">Nueva promo</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Nombre <span class="req">*</span></label><input class="form-input" id="pfNombre" placeholder="Día de la madre"></div>
+          <div class="form-group"><label>Texto que ve el cliente</label><input class="form-input" id="pfTexto" placeholder="20% OFF en todo" maxlength="60"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Tipo de descuento</label>
+            <div class="select-wrap"><select class="form-select" id="pfTipo" onchange="updatePromoForm()">
+              <option value="porcentaje">Porcentaje de descuento (%)</option>
+              <option value="monto">Monto fijo de descuento ($)</option>
+              <option value="precio">Precio especial ($)</option>
+            </select></div>
+          </div>
+          <div class="form-group"><label id="pfValorLabel">Porcentaje <span class="req">*</span></label><input class="form-input" id="pfValor" type="number" min="0" inputmode="numeric" placeholder="20"></div>
+        </div>
+        <div class="form-group"><label>¿A qué se aplica?</label>
+          <div class="select-wrap"><select class="form-select" id="pfAplica" onchange="updatePromoForm()">
+            <option value="productos">Productos específicos</option>
+            <option value="categoria">Una categoría</option>
+            <option value="pedido">Todo el pedido</option>
+          </select></div>
+        </div>
+        <div class="form-group" id="pfProductosWrap"><label>Productos</label><div class="promo-products" id="pfProductos"></div></div>
+        <div class="form-group" id="pfCategoriaWrap" style="display:none"><label>Categoría</label>
+          <div class="select-wrap"><select class="form-select" id="pfCategoria"></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Desde (opcional)</label><input class="form-input" id="pfDesde" type="date"></div>
+          <div class="form-group"><label>Hasta, inclusive (opcional)</label><input class="form-input" id="pfHasta" type="date"></div>
+        </div>
+        <div class="form-group"><label>Días de la semana (si no marcás ninguno, vale todos los días)</label><div class="promo-days" id="pfDias"></div></div>
+        <div class="form-row">
+          <div class="form-group"><label>Compra mínima (opcional)</label><input class="form-input" id="pfMinimo" type="number" min="0" inputmode="numeric" placeholder="0"></div>
+          <div class="form-group"><label>Código de cupón (opcional)</label><input class="form-input" id="pfCodigo" placeholder="MAMA20" autocapitalize="characters" oninput="updatePromoForm()"></div>
+        </div>
+        <div id="pfCuponOpts" style="display:none">
+          <label class="check-row"><input type="checkbox" id="pfUnUso" checked> Un solo uso por cliente</label>
+          <label class="check-row"><input type="checkbox" id="pfAnunciar"> Mostrar el código en el cartel de la home</label>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="btn-full" id="pfGuardarBtn" style="flex:1" onclick="savePromo()">Guardar</button>
+          <button class="edit-btn" style="padding:0 18px" onclick="closePromoForm()">Cancelar</button>
+        </div>
+      </div>
+
+      <div id="promoAdminList"></div>
     </div>
 
     <!-- Pedidos -->

@@ -366,6 +366,17 @@ footer { background: var(--black); color: var(--white); padding: 52px 5vw 26px; 
 .admin-table tr:hover td { background: #fafaf8; }
 .edit-btn { background: none; border: 1px solid var(--border); border-radius: var(--rs); padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
 .edit-btn:hover { background: var(--black); color: var(--white); }
+/* Panel de promociones */
+.promo-admin-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 13px; }
+.promo-new-btn { padding: 9px 14px; font-size: 13px; white-space: nowrap; background: var(--black); color: var(--white); border-color: var(--black); }
+.promo-products { max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--rs); padding: 8px 12px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
+.form-group .promo-products .check-row { display: flex; margin: 3px 0; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--black); font-weight: 400; }
+.form-group .promo-day { display: inline-block; margin: 0; text-transform: none; letter-spacing: 0; color: var(--black); font-weight: 400; }
+.promo-days { display: flex; flex-wrap: wrap; gap: 6px; }
+.promo-day input { display: none; }
+.promo-day span { display: inline-block; min-width: 44px; text-align: center; padding: 7px 8px; border: 1px solid var(--border); border-radius: 100px; font-size: 12px; cursor: pointer; text-transform: capitalize; }
+.promo-day input:checked + span { background: var(--black); color: var(--white); border-color: var(--black); }
+.promo-admin-card { margin-bottom: 10px; }
 .chart-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; margin-bottom: 16px; }
 .chart-bars { display: flex; align-items: flex-end; gap: 7px; height: 100px; margin-top: 12px; }
 .chart-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -427,4 +438,6 @@ footer { background: var(--black); color: var(--white); padding: 52px 5vw 26px; 
   .form-row { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .nosotros-stats { grid-template-columns: 1fr 1fr; }
+  .promo-products { grid-template-columns: 1fr; }
+  .promo-admin-head { flex-direction: column; }
 }

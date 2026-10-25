@@ -1378,7 +1378,7 @@ async function doAdminLogin() {
 async function showAdminTab(tab, el) {
   document.querySelectorAll('.admin-nav-item').forEach(x => x.classList.remove('active'));
   el.classList.add('active');
-  ['Dashboard', 'Products', 'Orders', 'Customers', 'Catering', 'Mayorista', 'Videos'].forEach(t => {
+  ['Dashboard', 'Products', 'Promos', 'Orders', 'Customers', 'Catering', 'Mayorista', 'Videos'].forEach(t => {
     const e = document.getElementById('admin' + t);
     if (e) e.style.display = 'none';
   });
@@ -1386,8 +1386,189 @@ async function showAdminTab(tab, el) {
   if (target) target.style.display = 'block';
   if (tab === 'customers')  renderCustomersTable();
   if (tab === 'orders')     renderAllOrdersTable();
+  if (tab === 'promos')     loadAdminPromos();
   if (tab === 'catering')   loadAdminCatering();
   if (tab === 'mayorista')  loadAdminMayorista();
+}
+
+// ===== ADMIN: PROMOCIONES =====
+let adminPromos = [];
+let editingPromoId = null;
+const DIAS_ORDEN = [1, 2, 3, 4, 5, 6, 0];   // en el formulario la semana arranca el lunes
+
+async function loadAdminPromos() {
+  const el = document.getElementById('promoAdminList');
+  const { data, error } = await sb.from('promociones').select('*').order('created_at', { ascending: false });
+  if (error) {
+    el.innerHTML = '<div class="section-card" style="font-size:13px;color:var(--gray)">Las promociones todavía no están activadas: falta correr <strong>supabase/promociones.sql</strong> en Supabase (ver docs/PROMOCIONES.md).</div>';
+    return;
+  }
+  adminPromos = data || [];
+  renderAdminPromos();
+}
+
+function promoResumen(p) {
+  const valor  = p.tipo === 'porcentaje' ? p.valor + '% OFF' : p.tipo === 'monto' ? '-' + money(p.valor) : 'Precio especial ' + money(p.valor);
+  const aplica = p.aplica === 'pedido' ? 'todo el pedido'
+    : p.aplica === 'categoria' ? 'categoría ' + ((CATS_DEF.find(c => c.name === p.categoria) || {}).label || p.categoria)
+    : (p.productos || []).map(id => (PRODUCTOS.find(x => x.id === Number(id)) || {}).name).filter(Boolean).join(', ');
+  const fechas = p.desde && p.hasta ? `del ${fechaCorta(p.desde)} al ${fechaCorta(p.hasta)}`
+    : p.desde ? 'desde el ' + fechaCorta(p.desde) : p.hasta ? 'hasta el ' + fechaCorta(p.hasta) : '';
+  return [
+    valor + ' en ' + aplica,
+    p.codigo ? 'Cupón ' + p.codigo + (p.un_uso !== false ? ' (un uso por cliente)' : '') + (p.anunciar ? ', anunciado en la home' : '') : 'Automática',
+    fechas,
+    p.dias?.length ? 'solo ' + textoDias(p.dias) : '',
+    Number(p.minimo) > 0 ? 'compra mínima ' + money(p.minimo) : '',
+  ].filter(Boolean).join(' · ');
+}
+
+function renderAdminPromos() {
+  const el = document.getElementById('promoAdminList');
+  if (!adminPromos.length) {
+    el.innerHTML = '<div class="section-card" style="font-size:13px;color:var(--gray);text-align:center">Todavía no cargaste promociones</div>';
+    return;
+  }
+  const estados = {
+    'Activa':     ['Activa ahora', 'status-delivered'],
+    'Hoy no':     ['Hoy no es su día', 'status-processing'],
+    'Programada': ['Programada', 'status-processing'],
+    'Vencida':    ['Vencida', 'status-cancelled'],
+    'Pausada':    ['Pausada', 'status-cancelled'],
+  };
+  el.innerHTML = adminPromos.map(p => {
+    const [label, cls] = estados[promoEstado(p)];
+    return `
+      <div class="section-card promo-admin-card">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+          <div style="font-weight:600;font-size:14px">${escapeHtml(p.nombre)}</div>
+          <span class="order-status ${cls}" style="white-space:nowrap">${label}</span>
+        </div>
+        ${p.texto ? `<div style="font-size:13px;margin-top:4px">“${escapeHtml(p.texto)}”</div>` : ''}
+        <div style="font-size:12px;color:var(--gray);margin-top:6px">${escapeHtml(promoResumen(p))}</div>
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+          <button class="edit-btn" onclick="openPromoForm('${p.id}')">Editar</button>
+          <button class="edit-btn" onclick="togglePromoPause('${p.id}')">${p.pausada ? 'Reanudar' : 'Pausar'}</button>
+          <button class="edit-btn" onclick="deletePromo('${p.id}')">Borrar</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openPromoForm(id = null) {
+  const p = id ? adminPromos.find(x => x.id === id) : null;
+  editingPromoId = p ? p.id : null;
+  document.getElementById('promoFormTitle').textContent = p ? 'Editar promo' : 'Nueva promo';
+  const f = (fid, val) => { document.getElementById(fid).value = val ?? ''; };
+  f('pfNombre', p?.nombre);
+  f('pfTexto',  p?.texto);
+  f('pfTipo',   p?.tipo || 'porcentaje');
+  f('pfValor',  p?.valor);
+  f('pfAplica', p?.aplica || 'productos');
+  f('pfDesde',  p?.desde);
+  f('pfHasta',  p?.hasta);
+  f('pfMinimo', Number(p?.minimo) > 0 ? p.minimo : '');
+  f('pfCodigo', p?.codigo);
+  document.getElementById('pfUnUso').checked    = p ? p.un_uso !== false : true;
+  document.getElementById('pfAnunciar').checked = !!p?.anunciar;
+
+  const elegidos = (p?.productos || []).map(Number);
+  document.getElementById('pfProductos').innerHTML = products.map(x => `
+    <label class="check-row"><input type="checkbox" value="${x.id}"${elegidos.includes(x.id) ? ' checked' : ''}> ${escapeHtml(x.name)} <span style="color:var(--gray);font-size:11px">${money(x.price)}</span></label>`).join('');
+  document.getElementById('pfCategoria').innerHTML = '<option value="">Elegí una categoría...</option>' +
+    CATS_DEF.filter(c => c.name !== 'CATERING' && catHasProducts(c.name)).map(c => `<option value="${c.name}">${c.label}</option>`).join('');
+  f('pfCategoria', p?.categoria);
+  const dias = (p?.dias || []).map(Number);
+  document.getElementById('pfDias').innerHTML = DIAS_ORDEN.map(d => `
+    <label class="promo-day"><input type="checkbox" value="${d}"${dias.includes(d) ? ' checked' : ''}><span>${DIAS_SEMANA[d].slice(0, 3)}</span></label>`).join('');
+
+  updatePromoForm();
+  const form = document.getElementById('promoForm');
+  form.style.display = 'block';
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closePromoForm() {
+  document.getElementById('promoForm').style.display = 'none';
+  editingPromoId = null;
+}
+
+// Muestra solo los campos que corresponden a lo elegido
+function updatePromoForm() {
+  const tipo   = document.getElementById('pfTipo').value;
+  const aplica = document.getElementById('pfAplica').value;
+  document.getElementById('pfValorLabel').innerHTML = (tipo === 'porcentaje' ? 'Porcentaje' : tipo === 'monto' ? 'Monto a descontar ($)' : 'Precio especial ($)') + ' <span class="req">*</span>';
+  document.getElementById('pfProductosWrap').style.display = aplica === 'productos' ? 'block' : 'none';
+  document.getElementById('pfCategoriaWrap').style.display = aplica === 'categoria' ? 'block' : 'none';
+  document.getElementById('pfCuponOpts').style.display     = document.getElementById('pfCodigo').value.trim() ? 'block' : 'none';
+}
+
+function readPromoForm() {
+  const v = id => document.getElementById(id).value.trim();
+  const aplica = v('pfAplica');
+  const codigo = v('pfCodigo').toUpperCase();
+  return {
+    nombre:    v('pfNombre'),
+    texto:     v('pfTexto'),
+    tipo:      v('pfTipo'),
+    valor:     Number(v('pfValor')),
+    aplica,
+    productos: aplica === 'productos' ? [...document.querySelectorAll('#pfProductos input:checked')].map(x => Number(x.value)) : [],
+    categoria: aplica === 'categoria' ? v('pfCategoria') : '',
+    desde:     v('pfDesde') || null,
+    hasta:     v('pfHasta') || null,
+    dias:      [...document.querySelectorAll('#pfDias input:checked')].map(x => Number(x.value)),
+    minimo:    Number(v('pfMinimo')) || 0,
+    codigo:    codigo || null,
+    un_uso:    document.getElementById('pfUnUso').checked,
+    anunciar:  !!codigo && document.getElementById('pfAnunciar').checked,
+  };
+}
+
+async function savePromo() {
+  const promo = readPromoForm();
+  const err = validarPromo(promo);
+  if (err) { showToast('❌ ' + err, 4000); return; }
+  const btn = document.getElementById('pfGuardarBtn');
+  btn.disabled = true;
+  try {
+    const { error } = editingPromoId
+      ? await sb.from('promociones').update(promo).eq('id', editingPromoId)
+      : await sb.from('promociones').insert(promo);
+    if (error) {
+      console.error('savePromo error:', error);
+      showToast(error.code === '23505' ? '❌ Ya hay otra promo con ese código' : '❌ No se pudo guardar la promo', 4000);
+      return;
+    }
+    showToast(editingPromoId ? '✓ Promo actualizada' : '✓ Promo creada');
+    closePromoForm();
+    await loadAdminPromos();
+    loadPromos();
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function togglePromoPause(id) {
+  const p = adminPromos.find(x => x.id === id);
+  if (!p) return;
+  const { error } = await sb.from('promociones').update({ pausada: !p.pausada }).eq('id', id);
+  if (error) { showToast('❌ No se pudo cambiar la promo'); return; }
+  showToast(p.pausada ? '✓ Promo reanudada' : '✓ Promo pausada');
+  await loadAdminPromos();
+  loadPromos();
+}
+
+async function deletePromo(id) {
+  const p = adminPromos.find(x => x.id === id);
+  if (!p) return;
+  if (!confirm(`¿Borrar la promo "${p.nombre}"? No se puede deshacer. Los pedidos que ya la usaron no cambian.`)) return;
+  const { error } = await sb.from('promociones').delete().eq('id', id);
+  if (error) { showToast('❌ No se pudo borrar la promo'); return; }
+  if (editingPromoId === id) closePromoForm();
+  showToast('✓ Promo borrada');
+  await loadAdminPromos();
+  loadPromos();
 }
 
 async function updateAdminStats() {
