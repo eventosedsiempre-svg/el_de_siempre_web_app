@@ -25,11 +25,12 @@
       <li><a onclick="showPage('shop')">Productos</a></li>
       <li><a onclick="filterAndShow('PROMOCIONES')">🔥 Promos</a></li>
       <li><a onclick="showPage('catering')">Catering</a></li>
+      <li><a onclick="showPage('mayorista')">Mayorista</a></li>
       <li><a onclick="showPage('nosotros')">Nosotros</a></li>
     </ul>
     <div class="nav-actions">
       <button class="btn-nav" style="font-size:11px;opacity:0.5" onclick="showPage('adminlogin')">Admin</button>
-      <button class="btn-nav" onclick="showPage('auth')">Ingresar</button>
+      <button class="btn-nav" id="navAuthBtn" onclick="showPage('auth')">Ingresar</button>
       <button class="cart-btn" onclick="openCart()">🛒 Carrito <span class="cart-count" id="cartCount">0</span></button>
     </div>
   </div>
@@ -97,8 +98,9 @@
     <div class="hero-inner">
       <div>
         <div class="hero-tag">Zona Norte GBA y alrededores</div>
-        <h1 class="hero-title">Comida casera<br><em>lista para</em><br>calentar</h1>
-        <p class="hero-sub">Pizzas, empanadas, tartas y milanesas artesanales. Congeladas en el punto justo para disfrutar cuando quieras.</p>
+        <p style="color:var(--accent);font-size:13px;font-weight:600;letter-spacing:0.5px;margin-bottom:10px">— LA COMIDA DE SIEMPRE, CUANDO MÁS LA NECESITÁS</p>
+        <h1 class="hero-title">Lo casero tiene<br><em>otro sabor.</em></h1>
+        <p class="hero-sub">Pizzas, empanadas y milanesas artesanales, listas para calentar. Y cuando querés celebrar en grande, estamos para eso también.</p>
         <button class="btn-primary" onclick="showPage('shop')">Ver productos →</button>
         <button class="btn-secondary" onclick="showPage('catering')">Catering</button>
       </div>
@@ -135,11 +137,9 @@
       <h2 class="section-title">Eventos y producciones</h2>
       <p class="section-sub">Mirá cómo trabajamos en cada evento</p>
       <div class="video-grid">
-        <div class="video-slot" id="vslot0" onclick="uploadVideo(0)"><div class="video-slot-icon">▶️</div><h4>Video de evento</h4><p>Hacé clic para subir un video</p></div>
-        <div class="video-slot" id="vslot1" onclick="uploadVideo(1)"><div class="video-slot-icon">▶️</div><h4>Video de producción</h4><p>Hacé clic para subir un video</p></div>
-        <div class="video-slot" id="vslot2" onclick="uploadVideo(2)"><div class="video-slot-icon">▶️</div><h4>Video destacado</h4><p>Hacé clic para subir un video</p></div>
+        <div class="video-slot"><video src="images/productos/EVENTO-1.mp4" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;border-radius:12px"></video></div>
+        <div class="video-slot"><video src="images/productos/EVENTO-2.mp4" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;border-radius:12px"></video></div>
       </div>
-      <input type="file" id="videoFileInput" accept="video/*" style="display:none" onchange="handleVideoUpload(this)">
     </div>
   </section>
 
@@ -151,8 +151,42 @@
       <div class="steps-grid">
         <div class="step"><div class="step-num">01</div><h3>Elegís</h3><p>Navegás el catálogo y elegís lo que querés.</p></div>
         <div class="step"><div class="step-num">02</div><h3>Pedís</h3><p>Checkout en menos de 2 minutos.</p></div>
-        <div class="step"><div class="step-num">03</div><h3>Llega</h3><p>Te lo enviamos congelado a tu zona.</p></div>
+        <div class="step"><div class="step-num">03</div><h3>Llega</h3><p>Hacemos el envio todos los viernes.</p></div>
         <div class="step"><div class="step-num">04</div><h3>Disfrutás</h3><p>Calentás y tenés comida casera lista.</p></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;border-top:1px solid rgba(255,255,255,0.1);margin-top:36px;padding-top:28px">
+        <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0"><strong style="color:#fff">¿Tenés alguna duda?</strong> Escribinos y te ayudamos a armar tu pedido.</p>
+        <a class="btn-white" style="margin-top:0" href="https://wa.me/5491133111207?text=Hola!%20Tengo%20una%20duda%20sobre%20mi%20pedido%20en%20El%20de%20Siempre" target="_blank" rel="noopener">💬 Escribir por WhatsApp →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="zone-bg">
+    <div class="section-inner">
+      <div class="zone-inner">
+        <div class="zone-text">
+          <div class="zone-badge">Zona Norte GBA y alrededores</div>
+          <h2>listo para <em>disfrutar</em></h2>
+          <div class="zone-feature">
+            <div class="zone-feature-icon">📍</div>
+            <div><h3>Zona de cobertura</h3><p>Llegamos a tu hogar con nuestros productos.</p></div>
+          </div>
+          <div class="zone-feature">
+            <div class="zone-feature-icon">🍕</div>
+            <div><h3>Nuestro punto de retiro</h3><p>Tigre</p></div>
+          </div>
+          <div class="zone-feature">
+            <div class="zone-feature-icon">?</div>
+            <div><h3>Consultá por otra zona</h3><p>Te contamos si llegamos.</p></div>
+          </div>
+          <div class="zone-note">
+            <div style="font-size:22px">📅</div>
+            <div><h3>Entregamos los viernes únicamente</h3><p>Tomamos pedidos toda la semana.</p></div>
+          </div>
+        </div>
+        <div>
+          <img class="zone-img" src="images/productos/image.png" alt="Mapa de la zona de cobertura - Zona Norte GBA">
+        </div>
       </div>
     </div>
   </section>
@@ -175,11 +209,41 @@
     <div class="section-inner">
       <div class="section-label">Lo que dicen</div>
       <h2 class="section-title">Clientes felices</h2>
-      <p class="section-sub">Más de 2.000 familias ya confían en El de Siempre</p>
+      <p class="section-sub">Más de 250 hogares ya confían en El de Siempre</p>
       <div class="reviews-grid">
-        <div class="review-card"><div class="stars">★★★★★</div><p class="review-text">"Las empanadas son increíbles. Las tengo siempre en el freezer para cuando llegan visitas."</p><div class="reviewer"><div class="reviewer-avatar">MG</div><div><div class="reviewer-name">María González</div><div class="reviewer-loc">Nordelta, GBA</div></div></div></div>
-        <div class="review-card"><div class="stars">★★★★★</div><p class="review-text">"Pedí para el cumpleaños de mi hijo y todo el mundo preguntó dónde había comprado. La pizza, una maravilla."</p><div class="reviewer"><div class="reviewer-avatar">JP</div><div><div class="reviewer-name">Juan Pablo R.</div><div class="reviewer-loc">San Isidro, GBA</div></div></div></div>
-        <div class="review-card"><div class="stars">★★★★★</div><p class="review-text">"El catering para 40 personas, impecable. Puntualidad, presentación y sabor."</p><div class="reviewer"><div class="reviewer-avatar">CL</div><div><div class="reviewer-name">Carolina López</div><div class="reviewer-loc">Tigre, GBA</div></div></div></div>
+        <div class="review-card">
+          <div class="review-top">
+            <span class="stars">★★★★★</span>
+            <span class="google-badge"><svg width="14" height="14" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg> Reseña Google</span>
+          </div>
+          <p class="review-text">"Hice pizza party para mi cumpleaños el viernes y todos mis amigos elogiaron la pizza, muy ricas de verdad."</p>
+          <div class="reviewer">
+            <div class="reviewer-avatar">DB</div>
+            <div><div class="reviewer-name">Delfina Barreiro</div><div class="reviewer-loc">Hace un año</div></div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-top">
+            <span class="stars">★★★★★</span>
+            <span class="google-badge"><svg width="14" height="14" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg> Reseña Google</span>
+          </div>
+          <p class="review-text">"Excelentes productos con precios acordes."</p>
+          <div class="reviewer">
+            <div class="reviewer-avatar">GS</div>
+            <div><div class="reviewer-name">Gustavo Simian</div><div class="reviewer-loc">Hace 2 años</div><span class="local-guide">Local Guide · 91 opiniones</span></div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-top">
+            <span class="stars">★★★★★</span>
+            <span class="google-badge"><svg width="14" height="14" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg> Reseña Google</span>
+          </div>
+          <p class="review-text">"Muy bueno todo."</p>
+          <div class="reviewer">
+            <div class="reviewer-avatar">JS</div>
+            <div><div class="reviewer-name">Jerónimo Santiago</div><div class="reviewer-loc">Hace un año</div></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -220,6 +284,7 @@
           <ul>
             <li onclick="showPage('nosotros')">Nosotros</li>
             <li onclick="showPage('catering')">Catering</li>
+            <li onclick="showPage('mayorista')">Venta mayorista</li>
           </ul>
         </div>
         <div class="footer-col">
@@ -260,23 +325,20 @@
         <h2>Comida de verdad,<br><em>hecha con amor</em></h2>
         <p>Somos El de Siempre, una cocina familiar de Zona Norte del GBA especializada en comida congelada artesanal para el hogar.</p>
         <p>Cada pizza, empanada, tarta y milanesa sale de nuestras manos usando ingredientes frescos y recetas propias. Sin conservantes, sin aditivos.</p>
-        <p>También hacemos eventos de todo tipo — desde una pizza party íntima hasta catering para empresas y casamientos.</p>
+        <p>También nos especializamos en todo tipo de eventos — pizza parties íntimas, cumpleaños, reuniones corporativas, casamientos y mucho más. Si lo podés imaginar, nosotros lo cocinamos.</p>
         <div class="nosotros-stats">
-          <div class="nosotros-stat"><div class="nosotros-stat-num">2.000+</div><div class="nosotros-stat-label">familias satisfechas</div></div>
-          <div class="nosotros-stat"><div class="nosotros-stat-num">29</div><div class="nosotros-stat-label">productos artesanales</div></div>
-          <div class="nosotros-stat"><div class="nosotros-stat-num">9</div><div class="nosotros-stat-label">zonas de entrega</div></div>
-          <div class="nosotros-stat"><div class="nosotros-stat-num">100%</div><div class="nosotros-stat-label">sin conservantes</div></div>
+          <div class="nosotros-stat"><div class="nosotros-stat-num">+50</div><div class="nosotros-stat-label">eventos realizados en el último año</div></div>
+          <div class="nosotros-stat"><div class="nosotros-stat-num">+250</div><div class="nosotros-stat-label">familias que nos eligen cada semana</div></div>
+          <div class="nosotros-stat"><div class="nosotros-stat-num">+25</div><div class="nosotros-stat-label">productos de altísima calidad</div></div>
+          <div class="nosotros-stat"><div class="nosotros-stat-num">100%</div><div class="nosotros-stat-label">sin conservantes ni aditivos</div></div>
         </div>
         <a class="cotizar-btn" onclick="showPage('catering')">Cotizar mi evento →</a>
       </div>
       <div class="nosotros-visual">
-        <div class="nosotros-img-slot" id="nslot0" onclick="uploadNosotrosMedia(0)"><div class="nosotros-img-slot-icon">📷</div><p>Subí una foto o video de tu cocina</p></div>
-        <div class="nosotros-img-slot" id="nslot1" onclick="uploadNosotrosMedia(1)"><div class="nosotros-img-slot-icon">🎥</div><p>Subí una foto o video de tus productos</p></div>
-        <div class="nosotros-img-slot" id="nslot2" onclick="uploadNosotrosMedia(2)"><div class="nosotros-img-slot-icon">🎉</div><p>Foto o video de un evento</p></div>
-        <div class="nosotros-img-slot" id="nslot3" onclick="uploadNosotrosMedia(3)"><div class="nosotros-img-slot-icon">🍕</div><p>Tu mejor foto de producto</p></div>
+        <div class="nosotros-img-slot"><video src="images/productos/EVENTO-1.mp4" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;border-radius:12px"></video></div>
+        <div class="nosotros-img-slot"><video src="images/productos/EVENTO-2.mp4" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;border-radius:12px"></video></div>
       </div>
     </div>
-    <input type="file" id="nosotrosMediaInput" accept="image/*,video/*" style="display:none" onchange="handleNosotrosUpload(this)">
   </section>
 </div>
 
@@ -306,6 +368,38 @@
         </div>
       </div>
       <button class="btn-full" onclick="submitCatering()">Enviar consulta y abrir WhatsApp →</button>
+      <p style="font-size:12px;color:var(--gray);text-align:center;margin-top:10px">Al enviar, se abre WhatsApp con tu consulta pre-cargada</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== VENTA MAYORISTA ========== -->
+<div class="page" id="page-mayorista">
+  <div class="catering-page">
+    <div style="font-size:44px;margin-bottom:13px">📦</div>
+    <h2>Venta mayorista</h2>
+    <p class="sub">¿Tenés un negocio y necesitás comprar en cantidad? Dejanos tus datos y te contactamos para coordinar precios y pedidos mayoristas.</p>
+    <div class="auth-card">
+      <div class="form-group"><label>Nombre completo <span class="req">*</span></label><input class="form-input" placeholder="Tu nombre" id="mwName"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Teléfono <span class="req">*</span></label><input class="form-input" placeholder="+54 11 0000-0000" id="mwPhone" type="tel"></div>
+        <div class="form-group"><label>Negocio / Empresa <span class="req">*</span></label><input class="form-input" placeholder="Ej: Almacén Don José" id="mwBusiness"></div>
+      </div>
+      <div class="form-group"><label>Zona <span class="req">*</span></label><input class="form-input" placeholder="Ej: Tigre, GBA" id="mwZone"></div>
+      <div class="form-group">
+        <label>Tipo de negocio <span class="req">*</span></label>
+        <div class="select-wrap">
+          <select class="form-select" id="mwType">
+            <option value="">Seleccioná una opción...</option>
+            <option value="kiosco">🏪 Kiosco / Almacén</option>
+            <option value="rotiseria">🍱 Rotisería / Vianditas</option>
+            <option value="restaurante">🍽️ Restaurante / Bar</option>
+            <option value="revendedor">📦 Revendedor</option>
+            <option value="otro">✨ Otro</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-full" onclick="submitMayorista()">Enviar consulta y abrir WhatsApp →</button>
       <p style="font-size:12px;color:var(--gray);text-align:center;margin-top:10px">Al enviar, se abre WhatsApp con tu consulta pre-cargada</p>
     </div>
   </div>
@@ -369,9 +463,7 @@
         <div class="section-card">
           <h3>💳 Medio de pago</h3>
           <div class="pay-opts">
-            <div class="pay-opt selected" onclick="selectPay(this)"><span style="font-size:19px">💳</span><div><div style="font-weight:500">Tarjeta crédito/débito</div><div style="font-size:11px;color:var(--gray)">Visa, Mastercard, Amex</div></div></div>
-            <div class="pay-opt" onclick="selectPay(this)"><span style="font-size:19px">🏦</span><div><div style="font-weight:500">Transferencia bancaria</div><div style="font-size:11px;color:var(--gray)">10% de descuento</div></div></div>
-            <div class="pay-opt" onclick="selectPay(this)"><span style="font-size:19px">💚</span><div><div style="font-weight:500">Mercado Pago</div><div style="font-size:11px;color:var(--gray)">Hasta 12 cuotas sin interés</div></div></div>
+            <div class="pay-opt selected" onclick="selectPay(this)"><span style="font-size:19px">🏦</span><div><div style="font-weight:500">Transferencia bancaria</div><div style="font-size:11px;color:var(--gray)">Alias: eds.eventos · Transferí hoy o el día del envío</div></div></div>
             <div class="pay-opt" onclick="selectPay(this)"><span style="font-size:19px">💵</span><div><div style="font-weight:500">Efectivo al entregar</div><div style="font-size:11px;color:var(--gray)">Coordinamos al confirmar</div></div></div>
           </div>
         </div>
@@ -385,6 +477,10 @@
       <div id="orderSummaryItems"></div>
       <div class="totals-row" style="margin-top:10px"><span>Subtotal</span><span id="summarySubtotal">$0</span></div>
       <div class="totals-row"><span>Envío</span><span id="summaryShip">—</span></div>
+      <div id="summaryDiscountRow" style="display:none" class="totals-row">
+        <span style="color:#16a34a">Descuento</span>
+        <span style="color:#16a34a" id="summaryDiscountAmt"></span>
+      </div>
       <div class="oi-total"><span>Total</span><span id="summaryTotal">—</span></div>
     </div>
   </div>
@@ -420,8 +516,6 @@
         <div class="form-group"><label>Email</label><input class="form-input" placeholder="tu@email.com" type="email" id="loginEmail"></div>
         <div class="form-group"><label>Contraseña</label><input class="form-input" placeholder="••••••••" type="password" id="loginPass"></div>
         <button class="btn-full" onclick="doLogin()">Ingresar →</button>
-        <div class="divider"><span>o</span></div>
-        <button class="google-btn" onclick="doLogin()">🌐 Continuar con Google</button>
       </div>
 
       <!-- Registro -->
@@ -483,7 +577,7 @@
           <div class="form-group"><label>Email</label><input class="form-input" id="profEmail" type="email"></div>
           <div class="form-group"><label>Teléfono</label><input class="form-input" id="profPhone"></div>
           <div class="form-group"><label>Tu zona</label><input class="form-input" id="profZone" readonly style="background:var(--cream)"></div>
-          <button class="btn-full" style="max-width:160px" onclick="showToast('✓ Perfil actualizado')">Guardar</button>
+          <button class="btn-full" style="max-width:160px" onclick="saveProfile()">Guardar</button>
         </div>
       </div>
       <div id="tab-favorites" style="display:none">
@@ -520,6 +614,7 @@
       <div class="admin-nav-item" onclick="showAdminTab('orders',this)">Pedidos</div>
       <div class="admin-nav-item" onclick="showAdminTab('customers',this)">Clientes</div>
       <div class="admin-nav-item" onclick="showAdminTab('catering',this)">Catering</div>
+      <div class="admin-nav-item" onclick="showAdminTab('mayorista',this)">Mayorista</div>
       <div class="admin-nav-item" onclick="showAdminTab('videos',this)">Videos</div>
     </div>
     <button class="btn-nav" style="color:#fff;border-color:rgba(255,255,255,0.25);font-size:12px" onclick="showPage('home')">← Volver al sitio</button>
@@ -533,6 +628,7 @@
         <div class="stat-card"><div class="stat-label">Pedidos</div><div class="stat-num" id="adminOrderCount">0</div></div>
         <div class="stat-card"><div class="stat-label">Usuarios</div><div class="stat-num" id="adminUserCount">0</div></div>
         <div class="stat-card"><div class="stat-label">Catering</div><div class="stat-num" id="adminCateringCount">0</div></div>
+        <div class="stat-card"><div class="stat-label">Mayorista</div><div class="stat-num" id="adminMayoristaCount">0</div></div>
       </div>
       <div class="chart-wrap">
         <div style="font-size:14px;font-weight:600">Ventas semanales</div>
@@ -584,6 +680,15 @@
       </table>
     </div>
 
+    <!-- Mayorista -->
+    <div id="adminMayorista" style="display:none">
+      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Consultas de venta mayorista</div>
+      <table class="admin-table">
+        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Negocio</th><th>Zona</th><th>Tipo</th><th>Fecha</th></tr></thead>
+        <tbody id="mayoristaBody"><tr><td colspan="6" style="color:var(--gray);text-align:center;padding:18px">Sin consultas todavía</td></tr></tbody>
+      </table>
+    </div>
+
     <!-- Videos -->
     <div id="adminVideos" style="display:none">
       <div style="font-size:14px;font-weight:600;margin-bottom:6px">Videos de eventos</div>
@@ -603,6 +708,24 @@
   </div>
 </div>
 
+<!-- MODAL DETALLE PEDIDO ADMIN -->
+<div class="modal-overlay" id="orderDetailModal" style="display:none;align-items:center;justify-content:center" onclick="closeOrderDetail()">
+  <div class="modal" style="max-width:480px;width:92%;padding:28px;border-radius:16px" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeOrderDetail()">×</button>
+    <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;margin-bottom:4px" id="odTitle"></div>
+    <div style="font-size:12px;color:var(--gray);margin-bottom:18px" id="odMeta"></div>
+    <div id="odItems" style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:14px"></div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--gray)"><span>Subtotal</span><span id="odSubtotal"></span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--gray)"><span>Envío</span><span id="odShip"></span></div>
+      <div id="odCouponRow" style="display:none;justify-content:space-between;font-size:13px;color:#16a34a"><span id="odCouponLabel"></span><span id="odCouponAmt"></span></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;margin-top:4px"><span>Total</span><span id="odTotal"></span></div>
+    </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--gray)" id="odAddress"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/data.js"></script>
 <script src="js/config.js"></script>
 <script src="js/app.js"></script>
