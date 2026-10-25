@@ -54,4 +54,4 @@ En **Authentication → Emails → Templates → Reset Password**:
 2. En Supabase andá a **SQL Editor → New query**, pegalo y tocá **Run**.
 3. Tiene que decir "Success". Solo agrega cosas, no cambia ni borra pedidos ni usuarios, y se puede correr más de una vez.
 
-Conviene hacerlo **antes** de publicar los cambios. Si igual se publica antes, los pedidos se siguen guardando como hasta ahora (sin el precio por producto).
+Conviene hacerlo **antes** de publicar los cambios. Si igual se publica antes, los pedidos se siguen guardando como hasta ahora (sin el precio por producto) y la sección "Mis direcciones" avisa que todavía no está disponible.

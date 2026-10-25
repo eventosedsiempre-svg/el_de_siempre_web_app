@@ -36,10 +36,29 @@ function parseOrderItems(order) {
   });
 }
 
+// "Av. del Libertador 1234" → { calle: 'Av. del Libertador', numero: '1234' } (para la dirección vieja del perfil)
+function splitStreetNumber(street) {
+  const s = String(street || '').trim();
+  const match = s.match(/^(.*\D)\s+(\d+[a-zA-Z]?)$/);
+  return match ? { calle: match[1].trim(), numero: match[2] } : { calle: s, numero: '' };
+}
+
+// Texto de la dirección como se guarda en el pedido: "Calle 123 - 3B - Localidad (Ref: portón negro)"
+function formatAddress(a) {
+  if (!a) return '';
+  const base = [[a.calle, a.numero].filter(Boolean).join(' '), a.piso_depto, a.localidad].map(x => (x || '').trim()).filter(Boolean).join(' - ');
+  return a.referencia && a.referencia.trim() ? `${base} (Ref: ${a.referencia.trim()})` : base;
+}
+
+function sameAddress(a, b) {
+  const norm = x => String(x || '').trim().toLowerCase();
+  return ['calle', 'numero', 'piso_depto', 'localidad'].every(k => norm(a[k]) === norm(b[k]));
+}
+
 function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { ORDER_STATUSES, statusLabel, statusClass, parseOrderItems, escapeHtml };
+  module.exports = { ORDER_STATUSES, statusLabel, statusClass, parseOrderItems, splitStreetNumber, formatAddress, sameAddress, escapeHtml };
 }

@@ -22,6 +22,10 @@ let appliedCoupon = null;
 let currentVideoSlot = 0;
 let currentUser = null;
 let myOrders = [];
+let myAddresses = [];
+let addressesAvailable = true;   // false si la tabla addresses todavía no existe en Supabase
+let editingAddressId = null;
+let selectedAddressId = null;    // dirección guardada elegida en el checkout (null = nueva)
 
 // ===== UTILIDADES =====
 async function sha256(str) {
@@ -139,6 +143,7 @@ async function loadCurrentUser(authUser) {
   }
   currentUser = profile ? { ...profile, email: authUser.email } : { id: authUser.id, email: authUser.email, name: authUser.email.split('@')[0], last: '', phone: '', zone: '' };
   updateNavForUser();
+  loadAddresses();
 }
 
 // ===== RENDER =====
@@ -508,13 +513,20 @@ function goCheckout() {
         if (sel) { sel.value = zoneKey; onZoneChange(); }
       }
     }
-    // Prellenar dirección guardada
-    const g = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
-    g('ckStreet', currentUser.street);
-    g('ckCity',   currentUser.city);
-    g('ckDepto',  currentUser.depto);
-    g('ckNotes',  currentUser.delivery_notes);
+    // Prellenar el formulario con la dirección vieja del perfil (por si elige "otra dirección")
+    const legacy = splitStreetNumber(currentUser.street);
+    f('ckStreet', legacy.calle);
+    f('ckNumber', legacy.numero);
+    f('ckCity',   currentUser.city);
+    f('ckDepto',  currentUser.depto);
+    f('ckNotes',  currentUser.delivery_notes);
   }
+
+  // Si tiene direcciones guardadas, arranca con la predeterminada (y su zona)
+  selectedAddressId = null;
+  const def = currentUser && addressesAvailable ? (myAddresses.find(a => a.predeterminada) || myAddresses[0]) : null;
+  if (def) selectCheckoutAddress(def.id);
+  else renderCheckoutAddresses();
 }
 
 function updateOrderSummary() {
@@ -575,14 +587,18 @@ function ckNext(step) {
   } else if (step === 3) {
     if (!selectedZoneKey) { showToast('❌ Seleccioná tu zona de entrega'); return; }
     const zone = ZONES[selectedZoneKey];
-    if (zone && !zone.pickup && !document.getElementById('ckStreet').value) { showToast('❌ Ingresá tu dirección'); return; }
-    // Guardar dirección en el perfil si el usuario está logueado
-    if (currentUser && zone && !zone.pickup) {
-      const street = document.getElementById('ckStreet').value.trim();
-      const city   = document.getElementById('ckCity').value.trim();
-      const depto  = document.getElementById('ckDepto').value.trim();
-      const notes  = document.getElementById('ckNotes').value.trim();
-      sb.from('profiles').update({ street, city, depto, delivery_notes: notes }).eq('id', currentUser.id);
+    if (zone && !zone.pickup && !selectedAddressId) {
+      if (!document.getElementById('ckStreet').value.trim()) { showToast('❌ Ingresá la calle'); return; }
+      if (!document.getElementById('ckNumber').value.trim()) { showToast('❌ Ingresá el número'); return; }
+    }
+    // Mientras no exista la tabla de direcciones, se sigue guardando la última dirección en el perfil como antes
+    if (currentUser && zone && !zone.pickup && !addressesAvailable) {
+      const a      = getCheckoutAddress();
+      const street = [a.calle, a.numero].filter(Boolean).join(' ');
+      const city   = a.localidad;
+      const depto  = a.piso_depto;
+      const notes  = a.referencia;
+      sb.from('profiles').update({ street, city, depto, delivery_notes: notes }).eq('id', currentUser.id).then(() => {});
       currentUser.street = street;
       currentUser.city   = city;
       currentUser.depto  = depto;
@@ -614,10 +630,8 @@ async function confirmOrder() {
     const itemsList     = cart.map(i => i.name + ' x' + i.qty).join(', ');
     const clienteNombre = (document.getElementById('ckName').value + ' ' + document.getElementById('ckLast').value).trim();
     const esRetiro      = ZONES[selectedZoneKey]?.pickup;
-    const calle         = document.getElementById('ckStreet')?.value || '';
-    const ciudad        = document.getElementById('ckCity')?.value   || '';
-    const depto         = document.getElementById('ckDepto')?.value  || '';
-    const direccion     = esRetiro ? 'Retiro en local' : [calle, ciudad, depto].filter(Boolean).join(' - ');
+    const addr          = esRetiro ? null : getCheckoutAddress();
+    const direccion     = esRetiro ? 'Retiro en local' : formatAddress(addr);
     const fecha         = new Date().toLocaleDateString('es-AR');
 
     const order = {
@@ -664,6 +678,8 @@ async function confirmOrder() {
       console.error('Insert error:', msg);
       return;
     }
+
+    if (addr) await saveCheckoutAddress(addr);
 
     document.getElementById('orderNum').textContent = num;
     const msg = encodeURIComponent('Hola! Confirmé mi pedido ' + num + ' por $' + total.toLocaleString('es-AR') + ' (' + zoneName + '). ¡Gracias!');
@@ -962,6 +978,8 @@ function resetNav() {
 async function logout() {
   await sb.auth.signOut();
   currentUser = null;
+  myAddresses = [];
+  myOrders = [];
   resetNav();
   showPage('home');
   showToast('Sesión cerrada');
@@ -986,6 +1004,12 @@ async function showAccountTab(tab, el) {
   el.classList.add('active');
   document.querySelectorAll('#accountContent>div').forEach(x => x.style.display = 'none');
   document.getElementById('tab-' + tab).style.display = 'block';
+  if (tab === 'addresses') {
+    document.getElementById('addressForm').style.display = 'none';
+    document.getElementById('addressList').innerHTML = '<p style="color:var(--gray);font-size:14px">Cargando...</p>';
+    await loadAddresses();
+    renderAddresses();
+  }
   if (tab === 'favorites') {
     document.getElementById('favoritesGrid').innerHTML = products.slice(0, 4).map(productCard).join('');
   }
@@ -1028,6 +1052,209 @@ function renderMyOrders() {
 
 function openMyOrder(i) {
   if (myOrders[i]) openOrderDetail(myOrders[i], true);
+}
+
+// ===== DIRECCIONES =====
+async function loadAddresses() {
+  if (!currentUser) { myAddresses = []; return; }
+  const { data, error } = await sb.from('addresses').select('*').eq('user_id', currentUser.id)
+    .order('predeterminada', { ascending: false }).order('created_at', { ascending: true });
+  if (error) {
+    console.warn('addresses no disponible:', error.message);
+    addressesAvailable = false;
+    myAddresses = [];
+    return;
+  }
+  addressesAvailable = true;
+  myAddresses = data || [];
+}
+
+function deliveryZoneOptions(selected) {
+  return '<option value="">Seleccioná la zona...</option>' + Object.entries(ZONES)
+    .filter(([, z]) => !z.pickup)
+    .map(([key, z]) => `<option value="${key}" ${key === selected ? 'selected' : ''}>${z.name}</option>`).join('');
+}
+
+function renderAddresses() {
+  const list = document.getElementById('addressList');
+  const addBtn = document.getElementById('addAddressBtn');
+  if (!addressesAvailable) {
+    list.innerHTML = '<p style="color:var(--gray);font-size:14px">Las direcciones guardadas todavía no están disponibles. Probá más tarde.</p>';
+    addBtn.style.display = 'none';
+    return;
+  }
+  addBtn.style.display = document.getElementById('addressForm').style.display === 'none' ? 'block' : 'none';
+  if (!myAddresses.length) {
+    const legacy = currentUser?.street ? formatAddress({ ...splitStreetNumber(currentUser.street), piso_depto: currentUser.depto, localidad: currentUser.city, referencia: currentUser.delivery_notes }) : '';
+    list.innerHTML = legacy
+      ? `<div class="address-card">
+          <div class="address-card-sub">Usaste esta dirección en una compra anterior:</div>
+          <div class="address-card-text" style="margin-top:4px">${escapeHtml(legacy)}</div>
+          <div class="address-card-actions"><button onclick="openAddressForm(null, true)">Guardarla en Mis direcciones</button></div>
+        </div>`
+      : '<p style="color:var(--gray);font-size:14px;margin-bottom:12px">Todavía no guardaste direcciones.</p>';
+    return;
+  }
+  list.innerHTML = myAddresses.map(a => `
+    <div class="address-card${a.predeterminada ? ' is-default' : ''}">
+      <div class="address-card-text">${escapeHtml(formatAddress({ ...a, referencia: '' }))}${a.predeterminada ? '<span class="default-badge">Predeterminada</span>' : ''}</div>
+      <div class="address-card-sub">${escapeHtml(ZONES[a.zona]?.name || 'Sin zona')}${a.referencia ? ' · Ref: ' + escapeHtml(a.referencia) : ''}</div>
+      <div class="address-card-actions">
+        <button onclick="openAddressForm('${a.id}')">Editar</button>
+        ${a.predeterminada ? '' : `<button onclick="setDefaultAddress('${a.id}')">Marcar como predeterminada</button>`}
+        <button class="danger" onclick="deleteAddress('${a.id}')">Borrar</button>
+      </div>
+    </div>`).join('');
+}
+
+function openAddressForm(id = null, fromLegacy = false) {
+  editingAddressId = id;
+  const a = id ? myAddresses.find(x => x.id === id)
+    : fromLegacy ? { ...splitStreetNumber(currentUser?.street), piso_depto: currentUser?.depto, localidad: currentUser?.city, referencia: currentUser?.delivery_notes,
+                     zona: Object.keys(ZONES).find(k => ZONES[k].name === currentUser?.zone && !ZONES[k].pickup) || '' }
+    : {};
+  const zonaDefault = a?.zona || Object.keys(ZONES).find(k => ZONES[k].name === currentUser?.zone && !ZONES[k].pickup) || '';
+  document.getElementById('addressFormTitle').textContent = id ? 'Editar dirección' : 'Nueva dirección';
+  document.getElementById('adCalle').value     = a?.calle || '';
+  document.getElementById('adNumero').value    = a?.numero || '';
+  document.getElementById('adDepto').value     = a?.piso_depto || '';
+  document.getElementById('adLocalidad').value = a?.localidad || '';
+  document.getElementById('adRef').value       = a?.referencia || '';
+  document.getElementById('adZona').innerHTML  = deliveryZoneOptions(zonaDefault);
+  document.getElementById('adDefault').checked = id ? !!a?.predeterminada : !myAddresses.length;
+  document.getElementById('addressForm').style.display = 'block';
+  document.getElementById('addAddressBtn').style.display = 'none';
+  document.getElementById('addressForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closeAddressForm() {
+  editingAddressId = null;
+  document.getElementById('addressForm').style.display = 'none';
+  renderAddresses();
+}
+
+// Deja una sola predeterminada por usuario
+async function clearDefaultAddress() {
+  return sb.from('addresses').update({ predeterminada: false }).eq('user_id', currentUser.id).eq('predeterminada', true);
+}
+
+async function saveAddress() {
+  if (!currentUser) return;
+  const data = {
+    calle:      document.getElementById('adCalle').value.trim(),
+    numero:     document.getElementById('adNumero').value.trim(),
+    piso_depto: document.getElementById('adDepto').value.trim(),
+    localidad:  document.getElementById('adLocalidad').value.trim(),
+    referencia: document.getElementById('adRef').value.trim(),
+    zona:       document.getElementById('adZona').value,
+    predeterminada: document.getElementById('adDefault').checked || !myAddresses.length,
+  };
+  if (!data.calle || !data.numero) { showToast('❌ Completá calle y número'); return; }
+  if (!data.zona)                   { showToast('❌ Elegí la zona de entrega'); return; }
+  const btn = document.getElementById('adSaveBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    if (data.predeterminada) await clearDefaultAddress();
+    const { error } = editingAddressId
+      ? await sb.from('addresses').update(data).eq('id', editingAddressId)
+      : await sb.from('addresses').insert({ ...data, user_id: currentUser.id });
+    if (error) { console.error('saveAddress error:', error); showToast('❌ No pudimos guardar la dirección'); return; }
+    await loadAddresses();
+    showToast('✓ Dirección guardada');
+    closeAddressForm();
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar dirección';
+  }
+}
+
+async function setDefaultAddress(id) {
+  await clearDefaultAddress();
+  const { error } = await sb.from('addresses').update({ predeterminada: true }).eq('id', id);
+  if (error) { showToast('❌ No pudimos actualizar la dirección'); return; }
+  await loadAddresses();
+  renderAddresses();
+  showToast('✓ Dirección predeterminada actualizada');
+}
+
+async function deleteAddress(id) {
+  if (!confirm('¿Borrar esta dirección?')) return;
+  const wasDefault = myAddresses.find(a => a.id === id)?.predeterminada;
+  const { error } = await sb.from('addresses').delete().eq('id', id);
+  if (error) { showToast('❌ No pudimos borrar la dirección'); return; }
+  await loadAddresses();
+  // Si borró la predeterminada, pasa a serlo la primera que quede
+  if (wasDefault && myAddresses.length) {
+    await sb.from('addresses').update({ predeterminada: true }).eq('id', myAddresses[0].id);
+    await loadAddresses();
+  }
+  renderAddresses();
+  showToast('✓ Dirección borrada');
+}
+
+// ----- Direcciones en el checkout -----
+function renderCheckoutAddresses() {
+  const wrap   = document.getElementById('savedAddresses');
+  const fields = document.getElementById('newAddressFields');
+  const saved  = currentUser && addressesAvailable ? myAddresses : [];
+  document.getElementById('ckSaveAddressRow').style.display = currentUser && addressesAvailable ? 'flex' : 'none';
+  if (!saved.length) {
+    wrap.style.display = 'none';
+    fields.style.display = 'block';
+    return;
+  }
+  wrap.style.display = 'flex';
+  wrap.innerHTML = saved.map(a => `
+    <div class="pay-opt${selectedAddressId === a.id ? ' selected' : ''}" onclick="selectCheckoutAddress('${a.id}')">
+      <span style="font-size:17px">${selectedAddressId === a.id ? '🔘' : '⚪'}</span>
+      <div class="addr-opt-text">
+        <div style="font-weight:500">${escapeHtml(formatAddress({ ...a, referencia: '' }))}</div>
+        <div style="font-size:11px;color:var(--gray)">${escapeHtml(ZONES[a.zona]?.name || 'Sin zona')}${a.predeterminada ? ' · Predeterminada' : ''}</div>
+      </div>
+    </div>`).join('') + `
+    <div class="pay-opt${selectedAddressId === null ? ' selected' : ''}" onclick="selectCheckoutAddress(null)">
+      <span style="font-size:17px">${selectedAddressId === null ? '🔘' : '⚪'}</span>
+      <div style="font-weight:500">＋ Usar otra dirección</div>
+    </div>`;
+  fields.style.display = selectedAddressId === null ? 'block' : 'none';
+}
+
+function selectCheckoutAddress(id) {
+  selectedAddressId = id;
+  const a = id ? myAddresses.find(x => x.id === id) : null;
+  // La dirección guardada trae su zona: el costo de envío se calcula solo
+  if (a?.zona && ZONES[a.zona] && a.zona !== selectedZoneKey) {
+    document.getElementById('zoneSelect').value = a.zona;
+    onZoneChange();
+  }
+  renderCheckoutAddresses();
+}
+
+function getCheckoutAddress() {
+  if (selectedAddressId) {
+    const a = myAddresses.find(x => x.id === selectedAddressId);
+    if (a) return a;
+  }
+  return {
+    calle:      document.getElementById('ckStreet').value.trim(),
+    numero:     document.getElementById('ckNumber').value.trim(),
+    piso_depto: document.getElementById('ckDepto').value.trim(),
+    localidad:  document.getElementById('ckCity').value.trim(),
+    referencia: document.getElementById('ckNotes').value.trim(),
+  };
+}
+
+// Después de confirmar: guarda la dirección nueva si el usuario lo pidió (sin duplicar)
+async function saveCheckoutAddress(addr) {
+  if (!currentUser || !addressesAvailable || selectedAddressId) return;
+  if (!document.getElementById('ckSaveAddress').checked) return;
+  if (myAddresses.some(a => sameAddress(a, addr))) return;
+  try {
+    const { error } = await sb.from('addresses').insert({ ...addr, zona: selectedZoneKey, user_id: currentUser.id, predeterminada: !myAddresses.length });
+    if (error) console.error('saveCheckoutAddress error:', error);
+    await loadAddresses();
+  } catch (e) {
+    console.error('saveCheckoutAddress error:', e);
+  }
 }
 
 // ===== ADMIN =====

@@ -463,12 +463,19 @@
         </div>
         <div class="section-card" id="addressCard" style="display:none">
           <h3>📍 Dirección de entrega</h3>
-          <div class="form-group"><label>Calle y número <span class="req">*</span></label><input class="form-input" placeholder="Av. del Libertador 1234" id="ckStreet"></div>
-          <div class="form-row">
-            <div class="form-group"><label>Localidad</label><input class="form-input" placeholder="Nordelta" id="ckCity"></div>
-            <div class="form-group"><label>Casa/Depto</label><input class="form-input" placeholder="Casa 15 / Depto 3B" id="ckDepto"></div>
+          <div class="pay-opts" id="savedAddresses" style="display:none;margin-bottom:12px"></div>
+          <div id="newAddressFields">
+            <div class="form-row form-row-street">
+              <div class="form-group"><label>Calle <span class="req">*</span></label><input class="form-input" placeholder="Av. del Libertador" id="ckStreet"></div>
+              <div class="form-group"><label>Número <span class="req">*</span></label><input class="form-input" placeholder="1234" id="ckNumber" inputmode="numeric"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Piso / Depto</label><input class="form-input" placeholder="Casa 15 / 3B" id="ckDepto"></div>
+              <div class="form-group"><label>Localidad</label><input class="form-input" placeholder="Nordelta" id="ckCity"></div>
+            </div>
+            <div class="form-group"><label>Referencia para el repartidor</label><input class="form-input" placeholder="Portón negro, tocar timbre 2 veces..." id="ckNotes"></div>
+            <label class="check-row" id="ckSaveAddressRow" style="display:none"><input type="checkbox" id="ckSaveAddress" checked> Guardar esta dirección en mi perfil</label>
           </div>
-          <div class="form-group"><label>Notas para el repartidor</label><input class="form-input" placeholder="Tocar timbre 2 veces..." id="ckNotes"></div>
         </div>
         <button class="checkout-btn" onclick="ckNext(3)">Continuar →</button>
       </div>
@@ -608,6 +615,7 @@
       </div>
       <div class="account-nav-item active" onclick="showAccountTab('orders',this)"><span>📦</span> Mis pedidos</div>
       <div class="account-nav-item" onclick="showAccountTab('profile',this)"><span>👤</span> Mi perfil</div>
+      <div class="account-nav-item" onclick="showAccountTab('addresses',this)"><span>📍</span> Mis direcciones</div>
       <div class="account-nav-item" onclick="showAccountTab('favorites',this)"><span>❤️</span> Favoritos</div>
       <div class="account-nav-item" style="margin-top:7px;border-top:1px solid var(--border);padding-top:9px;color:#dc2626" onclick="logout()"><span>🚪</span> Cerrar sesión</div>
     </div>
@@ -628,6 +636,30 @@
           <div class="form-group"><label>Tu zona</label><input class="form-input" id="profZone" readonly style="background:var(--cream)"></div>
           <button class="btn-full" style="max-width:160px" onclick="saveProfile()">Guardar</button>
         </div>
+      </div>
+      <div id="tab-addresses" style="display:none">
+        <h2 style="font-size:19px;font-weight:700;margin-bottom:16px">Mis direcciones</h2>
+        <div id="addressList"></div>
+        <div class="section-card" id="addressForm" style="display:none">
+          <h3 id="addressFormTitle">Nueva dirección</h3>
+          <div class="form-row form-row-street">
+            <div class="form-group"><label>Calle <span class="req">*</span></label><input class="form-input" placeholder="Av. del Libertador" id="adCalle"></div>
+            <div class="form-group"><label>Número <span class="req">*</span></label><input class="form-input" placeholder="1234" id="adNumero" inputmode="numeric"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Piso / Depto</label><input class="form-input" placeholder="Casa 15 / 3B" id="adDepto"></div>
+            <div class="form-group"><label>Localidad</label><input class="form-input" placeholder="Nordelta" id="adLocalidad"></div>
+          </div>
+          <div class="form-group">
+            <label>Zona de entrega <span class="req">*</span></label>
+            <div class="select-wrap"><select class="form-select" id="adZona"></select></div>
+          </div>
+          <div class="form-group"><label>Referencia</label><input class="form-input" placeholder="Portón negro, tocar timbre 2 veces..." id="adRef"></div>
+          <label class="check-row"><input type="checkbox" id="adDefault"> Usar como dirección predeterminada</label>
+          <button class="btn-full" id="adSaveBtn" onclick="saveAddress()">Guardar dirección</button>
+          <button class="auth-link" onclick="closeAddressForm()">Cancelar</button>
+        </div>
+        <button class="btn-full" id="addAddressBtn" style="max-width:240px" onclick="openAddressForm()">＋ Agregar dirección</button>
       </div>
       <div id="tab-favorites" style="display:none">
         <h2 style="font-size:19px;font-weight:700;margin-bottom:16px">Favoritos</h2>
