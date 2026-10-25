@@ -24,8 +24,8 @@
     <ul class="nav-links">
       <li><a onclick="showPage('shop')">Productos</a></li>
       <li><a onclick="filterAndShow('PROMOCIONES')">🔥 Promos</a></li>
-      <li><a onclick="showPage('catering')">Catering</a></li>
-      <li><a onclick="showPage('mayorista')">Mayorista</a></li>
+      <li><a onclick="showPage('catering')">Eventos</a></li>
+      <li><a onclick="showPage('mayorista')">Revendedores</a></li>
       <li><a onclick="showPage('nosotros')">Nosotros</a></li>
     </ul>
     <div class="nav-actions">
@@ -100,15 +100,15 @@
         <div class="hero-tag">Zona Norte GBA y alrededores</div>
         <p style="color:var(--accent);font-size:13px;font-weight:600;letter-spacing:0.5px;margin-bottom:10px">— LA COMIDA DE SIEMPRE, CUANDO MÁS LA NECESITÁS</p>
         <h1 class="hero-title">Lo casero tiene<br><em>otro sabor.</em></h1>
-        <p class="hero-sub">Pizzas, empanadas y milanesas artesanales, listas para calentar. Y cuando querés celebrar en grande, estamos para eso también.</p>
+        <p class="hero-sub">Pizzas, empanadas y tartas artesanales, listas para calentar. Y cuando querés celebrar en grande, estamos para eso también.</p>
         <button class="btn-primary" onclick="showPage('shop')">Ver productos →</button>
-        <button class="btn-secondary" onclick="showPage('catering')">Catering</button>
+        <button class="btn-secondary" onclick="showPage('catering')">Eventos</button>
       </div>
       <div class="hero-visual">
         <div class="hero-card" onclick="filterAndShow('PROMOCIONES')"><div class="hero-card-emoji">🔥</div><h3>Promociones</h3><p>Packs con el mejor precio</p></div>
         <div class="hero-card" onclick="filterAndShow('PIZZAS')"><div class="hero-card-emoji">🍕</div><h3>Pizzas artesanales</h3><p>10 variedades</p></div>
         <div class="hero-card" onclick="filterAndShow('EMPANADAS')"><div class="hero-card-emoji">🥟</div><h3>Empanadas</h3><p>8 rellenos — caja de 6 unidades</p></div>
-        <div class="hero-card" onclick="filterAndShow('MILANESAS')"><div class="hero-card-emoji">🥩</div><h3>Milanesas</h3><p>Peceto y pollo fraccionadas</p></div>
+        <div class="hero-card" data-cat="MILANESAS" onclick="filterAndShow('MILANESAS')"><div class="hero-card-emoji">🥩</div><h3>Milanesas</h3><p>Peceto y pollo fraccionadas</p></div>
       </div>
     </div>
   </section>
@@ -139,6 +139,11 @@
       <div class="video-grid">
         <div class="video-slot"><video src="images/productos/EVENTO-1.mp4" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;border-radius:12px"></video></div>
         <div class="video-slot"><video src="images/productos/EVENTO-2.mp4" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;border-radius:12px"></video></div>
+        <div class="video-cta">
+          <h3>¿Organizás un evento?</h3>
+          <p>Contanos qué tenés en mente y armamos el menú ideal.</p>
+          <button class="cotizar-btn" onclick="showPage('catering')">Cotizar mi evento →</button>
+        </div>
       </div>
     </div>
   </section>
@@ -254,8 +259,8 @@
         <div>
           <div class="section-label" style="color:rgba(255,255,255,0.6)">Para eventos</div>
           <h2>¿Organizás un evento?</h2>
-          <p>Paquetes de catering para reuniones, cumpleaños, empresas y casamientos.</p>
-          <button class="btn-white" onclick="showPage('catering')">Consultar catering →</button>
+          <p>Paquetes para reuniones, cumpleaños, empresas y casamientos.</p>
+          <button class="btn-white" onclick="showPage('catering')">Cotizar mi evento →</button>
         </div>
         <div style="text-align:center;font-size:68px">🎉</div>
       </div>
@@ -276,15 +281,15 @@
             <li onclick="filterAndShow('PIZZAS')">Pizzas</li>
             <li onclick="filterAndShow('EMPANADAS')">Empanadas</li>
             <li onclick="filterAndShow('TARTAS')">Tartas</li>
-            <li onclick="filterAndShow('MILANESAS')">Milanesas</li>
+            <li data-cat="MILANESAS" onclick="filterAndShow('MILANESAS')">Milanesas</li>
           </ul>
         </div>
         <div class="footer-col">
           <h4>Empresa</h4>
           <ul>
             <li onclick="showPage('nosotros')">Nosotros</li>
-            <li onclick="showPage('catering')">Catering</li>
-            <li onclick="showPage('mayorista')">Venta mayorista</li>
+            <li onclick="showPage('catering')">Eventos</li>
+            <li onclick="showPage('mayorista')">Revendedores</li>
           </ul>
         </div>
         <div class="footer-col">
@@ -324,7 +329,7 @@
         <div class="section-label" style="color:rgba(255,255,255,0.4)">Quiénes somos</div>
         <h2>Comida de verdad,<br><em>hecha con amor</em></h2>
         <p>Somos El de Siempre, una cocina familiar de Zona Norte del GBA especializada en comida congelada artesanal para el hogar.</p>
-        <p>Cada pizza, empanada, tarta y milanesa sale de nuestras manos usando ingredientes frescos y recetas propias. Sin conservantes, sin aditivos.</p>
+        <p>Cada pizza, empanada y tarta sale de nuestras manos usando ingredientes frescos y recetas propias. Sin conservantes, sin aditivos.</p>
         <p>También nos especializamos en todo tipo de eventos — pizza parties íntimas, cumpleaños, reuniones corporativas, casamientos y mucho más. Si lo podés imaginar, nosotros lo cocinamos.</p>
         <div class="nosotros-stats">
           <div class="nosotros-stat"><div class="nosotros-stat-num">+50</div><div class="nosotros-stat-label">eventos realizados en el último año</div></div>
@@ -342,12 +347,12 @@
   </section>
 </div>
 
-<!-- ========== CATERING ========== -->
+<!-- ========== EVENTOS ========== -->
 <div class="page" id="page-catering">
   <div class="catering-page">
     <div style="font-size:44px;margin-bottom:13px">🎉</div>
-    <h2>Catering y eventos</h2>
-    <p class="sub">Completá el formulario y te contactamos en menos de 2 horas para armar el menú ideal para tu evento.</p>
+    <h2>Eventos</h2>
+    <p class="sub">Completá el formulario y te contactamos para armar el menú ideal para tu evento.</p>
     <div class="auth-card">
       <div class="form-group"><label>Nombre completo <span class="req">*</span></label><input class="form-input" placeholder="Tu nombre" id="ctName"></div>
       <div class="form-row">
@@ -373,17 +378,27 @@
   </div>
 </div>
 
-<!-- ========== VENTA MAYORISTA ========== -->
+<!-- ========== REVENDEDORES ========== -->
 <div class="page" id="page-mayorista">
   <div class="catering-page">
     <div style="font-size:44px;margin-bottom:13px">📦</div>
-    <h2>Venta mayorista</h2>
-    <p class="sub">¿Tenés un negocio y necesitás comprar en cantidad? Dejanos tus datos y te contactamos para coordinar precios y pedidos mayoristas.</p>
+    <h2>Revendedores</h2>
+    <p class="sub">¿Querés sumar las mejores pizzas a tu negocio? ¿Querés vender los mejores productos en tu barrio? Dejanos tus datos y te contactamos.</p>
     <div class="auth-card">
       <div class="form-group"><label>Nombre completo <span class="req">*</span></label><input class="form-input" placeholder="Tu nombre" id="mwName"></div>
       <div class="form-row">
         <div class="form-group"><label>Teléfono <span class="req">*</span></label><input class="form-input" placeholder="+54 11 0000-0000" id="mwPhone" type="tel"></div>
-        <div class="form-group"><label>Negocio / Empresa <span class="req">*</span></label><input class="form-input" placeholder="Ej: Almacén Don José" id="mwBusiness"></div>
+        <div class="form-group">
+          <label>¿Qué sos? <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select class="form-select" id="mwBusiness">
+              <option value="">Seleccioná...</option>
+              <option value="negocio">Negocio</option>
+              <option value="empresa">Empresa</option>
+              <option value="persona">Persona</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div class="form-group"><label>Zona <span class="req">*</span></label><input class="form-input" placeholder="Ej: Tigre, GBA" id="mwZone"></div>
       <div class="form-group">
@@ -613,8 +628,8 @@
       <div class="admin-nav-item" onclick="showAdminTab('products',this)">Productos</div>
       <div class="admin-nav-item" onclick="showAdminTab('orders',this)">Pedidos</div>
       <div class="admin-nav-item" onclick="showAdminTab('customers',this)">Clientes</div>
-      <div class="admin-nav-item" onclick="showAdminTab('catering',this)">Catering</div>
-      <div class="admin-nav-item" onclick="showAdminTab('mayorista',this)">Mayorista</div>
+      <div class="admin-nav-item" onclick="showAdminTab('catering',this)">Eventos</div>
+      <div class="admin-nav-item" onclick="showAdminTab('mayorista',this)">Revendedores</div>
       <div class="admin-nav-item" onclick="showAdminTab('videos',this)">Videos</div>
     </div>
     <button class="btn-nav" style="color:#fff;border-color:rgba(255,255,255,0.25);font-size:12px" onclick="showPage('home')">← Volver al sitio</button>
@@ -627,8 +642,8 @@
         <div class="stat-card"><div class="stat-label">Ventas acumuladas</div><div class="stat-num" id="adminSalesMonth">$0</div></div>
         <div class="stat-card"><div class="stat-label">Pedidos</div><div class="stat-num" id="adminOrderCount">0</div></div>
         <div class="stat-card"><div class="stat-label">Usuarios</div><div class="stat-num" id="adminUserCount">0</div></div>
-        <div class="stat-card"><div class="stat-label">Catering</div><div class="stat-num" id="adminCateringCount">0</div></div>
-        <div class="stat-card"><div class="stat-label">Mayorista</div><div class="stat-num" id="adminMayoristaCount">0</div></div>
+        <div class="stat-card"><div class="stat-label">Eventos</div><div class="stat-num" id="adminCateringCount">0</div></div>
+        <div class="stat-card"><div class="stat-label">Revendedores</div><div class="stat-num" id="adminMayoristaCount">0</div></div>
       </div>
       <div class="chart-wrap">
         <div style="font-size:14px;font-weight:600">Ventas semanales</div>
@@ -671,20 +686,20 @@
       </table>
     </div>
 
-    <!-- Catering -->
+    <!-- Eventos -->
     <div id="adminCatering" style="display:none">
-      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Consultas de catering</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Consultas de eventos</div>
       <table class="admin-table">
         <thead><tr><th>Nombre</th><th>Teléfono</th><th>Zona</th><th>Personas</th><th>Tipo</th><th>Fecha</th></tr></thead>
         <tbody id="cateringBody"><tr><td colspan="6" style="color:var(--gray);text-align:center;padding:18px">Sin consultas todavía</td></tr></tbody>
       </table>
     </div>
 
-    <!-- Mayorista -->
+    <!-- Revendedores -->
     <div id="adminMayorista" style="display:none">
-      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Consultas de venta mayorista</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Consultas de revendedores</div>
       <table class="admin-table">
-        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Negocio</th><th>Zona</th><th>Tipo</th><th>Fecha</th></tr></thead>
+        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Perfil</th><th>Zona</th><th>Tipo</th><th>Fecha</th></tr></thead>
         <tbody id="mayoristaBody"><tr><td colspan="6" style="color:var(--gray);text-align:center;padding:18px">Sin consultas todavía</td></tr></tbody>
       </table>
     </div>

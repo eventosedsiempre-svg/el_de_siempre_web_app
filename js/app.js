@@ -6,7 +6,7 @@ const CATS_DEF = [
   { name: 'TARTAS',      emoji: '🥧', label: 'Tartas' },
   { name: 'SIN TACC',    emoji: '🌾', label: 'Sin TACC' },
   { name: 'MILANESAS',   emoji: '🥩', label: 'Milanesas' },
-  { name: 'CATERING',    emoji: '🎉', label: 'Catering' },
+  { name: 'CATERING',    emoji: '🎉', label: 'Eventos' },
 ];
 
 // ===== ESTADO GLOBAL =====
@@ -39,7 +39,11 @@ async function init() {
     },
   });
 
-  products = PRODUCTOS;
+  products = PRODUCTOS.filter(p => p.activo !== false);
+  // Ocultar links a categorías que quedaron sin productos activos
+  document.querySelectorAll('[data-cat]').forEach(el => {
+    if (!catHasProducts(el.dataset.cat)) el.style.display = 'none';
+  });
   ZONES    = ZONAS;
   COUPONS  = CUPONES;
 
@@ -126,8 +130,10 @@ async function loadCurrentUser(authUser) {
 }
 
 // ===== RENDER =====
+function catHasProducts(cat) { return products.some(p => p.cat === cat); }
+
 function renderHomeCats() {
-  document.getElementById('homeCats').innerHTML = CATS_DEF.map(c => `
+  document.getElementById('homeCats').innerHTML = CATS_DEF.filter(c => c.name === 'CATERING' || catHasProducts(c.name)).map(c => `
     <div class="cat-card" onclick="${c.name === 'CATERING' ? "showPage('catering')" : `filterAndShow('${c.name}')`}">
       <div class="cat-emoji">${c.emoji}</div>
       <div class="cat-name">${c.label}</div>
@@ -136,16 +142,18 @@ function renderHomeCats() {
 }
 
 function renderFeaturedProducts() {
-  const ids = [1, 19, 4, 28];
+  // Se muestran los primeros 4 activos: si las milanesas (28) están desactivadas entra la tarta (22)
+  const ids = [1, 19, 4, 28, 22];
   document.getElementById('featuredProducts').innerHTML = ids
     .map(id => products.find(p => p.id === id))
     .filter(Boolean)
+    .slice(0, 4)
     .map(productCard)
     .join('');
 }
 
 function renderShopCats() {
-  const all = [{ name: 'Todos', emoji: '🛒', label: 'Todos' }, ...CATS_DEF.filter(c => c.name !== 'CATERING')];
+  const all = [{ name: 'Todos', emoji: '🛒', label: 'Todos' }, ...CATS_DEF.filter(c => c.name !== 'CATERING' && catHasProducts(c.name))];
   document.getElementById('shopCats').innerHTML = all.map(c => `
     <div class="cat-card${c.name === currentFilter ? ' active' : ''}" onclick="setFilter('${c.name}',this)">
       <div class="cat-emoji">${c.emoji}</div>
@@ -696,7 +704,7 @@ async function submitCatering() {
   if (!name || !phone || !zone || !guests || !type) { showToast('❌ Completá todos los campos'); return; }
   const fecha = new Date().toLocaleDateString('es-AR');
   // Abrir WhatsApp antes del await para que el navegador no bloquee el popup
-  const msg = encodeURIComponent('Hola El de Siempre! Quiero consultar por catering.\nNombre: ' + name + '\nZona: ' + zone + '\nPersonas: ' + guests + '\nTipo: ' + labels[type] + '\nTel: ' + phone);
+  const msg = encodeURIComponent('Hola El de Siempre! Quiero consultar por un evento.\nNombre: ' + name + '\nZona: ' + zone + '\nPersonas: ' + guests + '\nTipo: ' + labels[type] + '\nTel: ' + phone);
   window.open('https://wa.me/' + WA_NUMBER + '?text=' + msg, '_blank');
   const lead  = { name, phone, zone, guests, type: labels[type], date: fecha };
   const { error } = await sb.from('catering_leads').insert(lead);
@@ -717,20 +725,21 @@ async function loadAdminCatering() {
     : '<tr><td colspan="6" style="color:var(--gray);text-align:center;padding:18px">Sin consultas todavía</td></tr>';
 }
 
-// ===== VENTA MAYORISTA =====
+// ===== REVENDEDORES (página mayorista) =====
 async function submitMayorista() {
   const name     = document.getElementById('mwName').value.trim();
   const phone    = document.getElementById('mwPhone').value.trim();
-  const business = document.getElementById('mwBusiness').value.trim();
+  const business = document.getElementById('mwBusiness').value;
   const zone     = document.getElementById('mwZone').value.trim();
   const type     = document.getElementById('mwType').value;
+  const perfiles = { negocio: 'Negocio', empresa: 'Empresa', persona: 'Persona' };
   const labels = { kiosco: 'Kiosco / Almacén', rotiseria: 'Rotisería / Vianditas', restaurante: 'Restaurante / Bar', revendedor: 'Revendedor', otro: 'Otro' };
   if (!name || !phone || !business || !zone || !type) { showToast('❌ Completá todos los campos'); return; }
   const fecha = new Date().toLocaleDateString('es-AR');
   // Abrir WhatsApp antes del await para que el navegador no bloquee el popup
-  const msg = encodeURIComponent('Hola El de Siempre! Quiero consultar por venta mayorista.\nNombre: ' + name + '\nNegocio: ' + business + '\nZona: ' + zone + '\nTipo: ' + labels[type] + '\nTel: ' + phone);
+  const msg = encodeURIComponent('Hola El de Siempre! Quiero ser revendedor.\nNombre: ' + name + '\nSoy: ' + perfiles[business] + '\nZona: ' + zone + '\nTipo: ' + labels[type] + '\nTel: ' + phone);
   window.open('https://wa.me/' + WA_NUMBER + '?text=' + msg, '_blank');
-  const lead  = { name, phone, business, zone, type: labels[type], date: fecha };
+  const lead  = { name, phone, business: perfiles[business], zone, type: labels[type], date: fecha };
   const { error } = await sb.from('mayorista_leads').insert(lead);
   if (error) console.error('Mayorista insert error:', error);
   ['mwName', 'mwPhone', 'mwBusiness', 'mwZone'].forEach(id => document.getElementById(id).value = '');

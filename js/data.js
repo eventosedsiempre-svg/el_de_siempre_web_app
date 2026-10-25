@@ -1,6 +1,8 @@
 // ============================================================
 // PRODUCTOS — editá precio, nombre, imagen acá directamente
 // img: ruta a la foto en images/productos/ — dejá '' si no hay foto
+// activo: false → el producto no se muestra en ningún lado (catálogo, home,
+//   buscador). Para volver a habilitarlo cambiá false por true o borrá activo.
 // ============================================================
 const PRODUCTOS = [
   // PROMOCIONES
@@ -36,8 +38,8 @@ const PRODUCTOS = [
   // SIN TACC
   { id: 27, name: 'Pizza Muzzarella SIN TACC',     price: 12000, cat: 'SIN TACC',    emoji: '🌾', badge: 'sintacc', img: 'images/productos/MUZZARELLA.jpg' },
   // MILANESAS
-  { id: 28, name: 'Milanesas de Peceto 500g',      price: 17000, cat: 'MILANESAS',   emoji: '🥩', badge: '',        img: 'images/productos/MILANESA-CARNE.jpg' },
-  { id: 29, name: 'Milanesas de Pollo 1kg',        price: 19000, cat: 'MILANESAS',   emoji: '🥩', badge: '',        img: 'images/productos/MILANESA-POLLO.jpg' },
+  { id: 28, name: 'Milanesas de Peceto 500g',      price: 17000, cat: 'MILANESAS',   emoji: '🥩', badge: '',        img: 'images/productos/MILANESA-CARNE.jpg', activo: false },
+  { id: 29, name: 'Milanesas de Pollo 1kg',        price: 19000, cat: 'MILANESAS',   emoji: '🥩', badge: '',        img: 'images/productos/MILANESA-POLLO.jpg', activo: false },
 ];
 
 // ============================================================
