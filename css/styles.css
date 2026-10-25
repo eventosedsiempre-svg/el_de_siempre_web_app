@@ -209,6 +209,22 @@ footer { background: var(--black); color: var(--white); padding: 52px 5vw 26px; 
 .cart-item-img img { width: 100%; height: 100%; object-fit: cover; }
 .cart-item-name { font-size: 13px; font-weight: 500; margin-bottom: 2px; line-height: 1.3; }
 .cart-item-price { font-size: 12px; color: var(--gray); }
+/* Promociones: precio anterior tachado y precio con promo */
+.price-old { color: var(--gray); font-weight: 400; text-decoration: line-through; }
+.price-promo { color: var(--accent); font-weight: 700; }
+.promo-tag { display: inline-block; font-size: 11px; color: #16a34a; font-weight: 500; margin-top: 2px; }
+.badge-eds-promo { background: var(--accent); color: #fff; font-weight: 700; letter-spacing: 0.8px; margin-right: 4px; }
+#modalBadge .badge-eds-promo { margin-bottom: 8px; }
+.product-price .price-old { font-size: 12px; }
+.promo-min { display: block; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; color: var(--accent); }
+/* Cartel de promos en la home */
+.promo-banner-section { padding-top: 28px; padding-bottom: 28px; }
+.promo-banner { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.promo-banner-item { background: var(--accent); color: #fff; border-radius: var(--r); padding: 16px 18px; cursor: pointer; transition: transform 0.2s; }
+.promo-banner-item:hover { transform: translateY(-2px); }
+.promo-banner-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; line-height: 1.25; }
+.promo-banner-detail { font-size: 12px; opacity: 0.9; margin-top: 4px; }
+.promo-banner-detail strong { background: rgba(255,255,255,0.2); border-radius: 6px; padding: 1px 6px; letter-spacing: 0.5px; }
 .cart-qty { display: flex; align-items: center; gap: 7px; margin-top: 6px; }
 .qty-btn { background: none; border: 1px solid var(--border); border-radius: var(--rs); width: 22px; height: 22px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
 .qty-btn:hover { background: var(--black); color: var(--white); }
@@ -362,6 +378,17 @@ footer { background: var(--black); color: var(--white); padding: 52px 5vw 26px; 
 .admin-table tr:hover td { background: #fafaf8; }
 .edit-btn { background: none; border: 1px solid var(--border); border-radius: var(--rs); padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
 .edit-btn:hover { background: var(--black); color: var(--white); }
+/* Panel de promociones */
+.promo-admin-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 13px; }
+.promo-new-btn { padding: 9px 14px; font-size: 13px; white-space: nowrap; background: var(--black); color: var(--white); border-color: var(--black); }
+.promo-products { max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--rs); padding: 8px 12px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
+.form-group .promo-products .check-row { display: flex; margin: 3px 0; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--black); font-weight: 400; }
+.form-group .promo-day { display: inline-block; margin: 0; text-transform: none; letter-spacing: 0; color: var(--black); font-weight: 400; }
+.promo-days { display: flex; flex-wrap: wrap; gap: 6px; }
+.promo-day input { display: none; }
+.promo-day span { display: inline-block; min-width: 44px; text-align: center; padding: 7px 8px; border: 1px solid var(--border); border-radius: 100px; font-size: 12px; cursor: pointer; text-transform: capitalize; }
+.promo-day input:checked + span { background: var(--black); color: var(--white); border-color: var(--black); }
+.promo-admin-card { margin-bottom: 10px; }
 .chart-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; margin-bottom: 16px; }
 .chart-bars { display: flex; align-items: flex-end; gap: 7px; height: 100px; margin-top: 12px; }
 .chart-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -423,4 +450,6 @@ footer { background: var(--black); color: var(--white); padding: 52px 5vw 26px; 
   .form-row { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .nosotros-stats { grid-template-columns: 1fr 1fr; }
+  .promo-products { grid-template-columns: 1fr; }
+  .promo-admin-head { flex-direction: column; }
 }

@@ -19,7 +19,8 @@ function statusClass(status) {
   return 'status-pending';
 }
 
-// Devuelve [{ id, name, qty, price }]. Los pedidos nuevos traen items_detalle con id y precio;
+// Devuelve [{ id, name, qty, price, precio_original, promo }]. Los pedidos nuevos traen items_detalle con id y precio
+// (desde la tanda 3 también el precio sin promo y el texto de la promo, si tuvo);
 // los viejos solo tienen el texto "Pizza Muzzarella x2, Tarta Zapallo x1" (id y precio quedan en null).
 function parseOrderItems(order) {
   if (Array.isArray(order?.items_detalle) && order.items_detalle.length) {
@@ -28,11 +29,13 @@ function parseOrderItems(order) {
       name:  i.name || '',
       qty:   Number(i.qty) || 1,
       price: i.price == null ? null : Number(i.price),
+      precio_original: i.precio_original == null ? null : Number(i.precio_original),
+      promo: i.promo || null,
     }));
   }
   return String(order?.items || '').split(',').map(s => s.trim()).filter(Boolean).map(item => {
     const match = item.match(/^(.+?)\s+x(\d+)$/);
-    return { id: null, name: match ? match[1] : item, qty: match ? Number(match[2]) : 1, price: null };
+    return { id: null, name: match ? match[1] : item, qty: match ? Number(match[2]) : 1, price: null, precio_original: null, promo: null };
   });
 }
 
