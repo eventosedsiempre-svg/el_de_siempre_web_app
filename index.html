@@ -25,7 +25,7 @@
       <li><a onclick="showPage('shop')">Productos</a></li>
       <li><a onclick="filterAndShow('PROMOCIONES')">🔥 Promos</a></li>
       <li><a onclick="showPage('catering')">Eventos</a></li>
-      <li><a onclick="showPage('mayorista')">Mayorista</a></li>
+      <li><a onclick="showPage('mayorista')">Revendedores</a></li>
       <li><a onclick="showPage('nosotros')">Nosotros</a></li>
     </ul>
     <div class="nav-actions">
@@ -289,7 +289,7 @@
           <ul>
             <li onclick="showPage('nosotros')">Nosotros</li>
             <li onclick="showPage('catering')">Eventos</li>
-            <li onclick="showPage('mayorista')">Venta mayorista</li>
+            <li onclick="showPage('mayorista')">Revendedores</li>
           </ul>
         </div>
         <div class="footer-col">
@@ -378,17 +378,27 @@
   </div>
 </div>
 
-<!-- ========== VENTA MAYORISTA ========== -->
+<!-- ========== REVENDEDORES ========== -->
 <div class="page" id="page-mayorista">
   <div class="catering-page">
     <div style="font-size:44px;margin-bottom:13px">📦</div>
-    <h2>Venta mayorista</h2>
-    <p class="sub">¿Tenés un negocio y necesitás comprar en cantidad? Dejanos tus datos y te contactamos para coordinar precios y pedidos mayoristas.</p>
+    <h2>Revendedores</h2>
+    <p class="sub">¿Querés sumar las mejores pizzas a tu negocio? ¿Querés vender los mejores productos en tu barrio? Dejanos tus datos y te contactamos.</p>
     <div class="auth-card">
       <div class="form-group"><label>Nombre completo <span class="req">*</span></label><input class="form-input" placeholder="Tu nombre" id="mwName"></div>
       <div class="form-row">
         <div class="form-group"><label>Teléfono <span class="req">*</span></label><input class="form-input" placeholder="+54 11 0000-0000" id="mwPhone" type="tel"></div>
-        <div class="form-group"><label>Negocio / Empresa <span class="req">*</span></label><input class="form-input" placeholder="Ej: Almacén Don José" id="mwBusiness"></div>
+        <div class="form-group">
+          <label>¿Qué sos? <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select class="form-select" id="mwBusiness">
+              <option value="">Seleccioná...</option>
+              <option value="negocio">Negocio</option>
+              <option value="empresa">Empresa</option>
+              <option value="persona">Persona</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div class="form-group"><label>Zona <span class="req">*</span></label><input class="form-input" placeholder="Ej: Tigre, GBA" id="mwZone"></div>
       <div class="form-group">
@@ -619,7 +629,7 @@
       <div class="admin-nav-item" onclick="showAdminTab('orders',this)">Pedidos</div>
       <div class="admin-nav-item" onclick="showAdminTab('customers',this)">Clientes</div>
       <div class="admin-nav-item" onclick="showAdminTab('catering',this)">Eventos</div>
-      <div class="admin-nav-item" onclick="showAdminTab('mayorista',this)">Mayorista</div>
+      <div class="admin-nav-item" onclick="showAdminTab('mayorista',this)">Revendedores</div>
       <div class="admin-nav-item" onclick="showAdminTab('videos',this)">Videos</div>
     </div>
     <button class="btn-nav" style="color:#fff;border-color:rgba(255,255,255,0.25);font-size:12px" onclick="showPage('home')">← Volver al sitio</button>
@@ -633,7 +643,7 @@
         <div class="stat-card"><div class="stat-label">Pedidos</div><div class="stat-num" id="adminOrderCount">0</div></div>
         <div class="stat-card"><div class="stat-label">Usuarios</div><div class="stat-num" id="adminUserCount">0</div></div>
         <div class="stat-card"><div class="stat-label">Eventos</div><div class="stat-num" id="adminCateringCount">0</div></div>
-        <div class="stat-card"><div class="stat-label">Mayorista</div><div class="stat-num" id="adminMayoristaCount">0</div></div>
+        <div class="stat-card"><div class="stat-label">Revendedores</div><div class="stat-num" id="adminMayoristaCount">0</div></div>
       </div>
       <div class="chart-wrap">
         <div style="font-size:14px;font-weight:600">Ventas semanales</div>
@@ -685,11 +695,11 @@
       </table>
     </div>
 
-    <!-- Mayorista -->
+    <!-- Revendedores -->
     <div id="adminMayorista" style="display:none">
-      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Consultas de venta mayorista</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Consultas de revendedores</div>
       <table class="admin-table">
-        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Negocio</th><th>Zona</th><th>Tipo</th><th>Fecha</th></tr></thead>
+        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Perfil</th><th>Zona</th><th>Tipo</th><th>Fecha</th></tr></thead>
         <tbody id="mayoristaBody"><tr><td colspan="6" style="color:var(--gray);text-align:center;padding:18px">Sin consultas todavía</td></tr></tbody>
       </table>
     </div>

@@ -725,20 +725,21 @@ async function loadAdminCatering() {
     : '<tr><td colspan="6" style="color:var(--gray);text-align:center;padding:18px">Sin consultas todavía</td></tr>';
 }
 
-// ===== VENTA MAYORISTA =====
+// ===== REVENDEDORES (página mayorista) =====
 async function submitMayorista() {
   const name     = document.getElementById('mwName').value.trim();
   const phone    = document.getElementById('mwPhone').value.trim();
-  const business = document.getElementById('mwBusiness').value.trim();
+  const business = document.getElementById('mwBusiness').value;
   const zone     = document.getElementById('mwZone').value.trim();
   const type     = document.getElementById('mwType').value;
+  const perfiles = { negocio: 'Negocio', empresa: 'Empresa', persona: 'Persona' };
   const labels = { kiosco: 'Kiosco / Almacén', rotiseria: 'Rotisería / Vianditas', restaurante: 'Restaurante / Bar', revendedor: 'Revendedor', otro: 'Otro' };
   if (!name || !phone || !business || !zone || !type) { showToast('❌ Completá todos los campos'); return; }
   const fecha = new Date().toLocaleDateString('es-AR');
   // Abrir WhatsApp antes del await para que el navegador no bloquee el popup
-  const msg = encodeURIComponent('Hola El de Siempre! Quiero consultar por venta mayorista.\nNombre: ' + name + '\nNegocio: ' + business + '\nZona: ' + zone + '\nTipo: ' + labels[type] + '\nTel: ' + phone);
+  const msg = encodeURIComponent('Hola El de Siempre! Quiero ser revendedor.\nNombre: ' + name + '\nSoy: ' + perfiles[business] + '\nZona: ' + zone + '\nTipo: ' + labels[type] + '\nTel: ' + phone);
   window.open('https://wa.me/' + WA_NUMBER + '?text=' + msg, '_blank');
-  const lead  = { name, phone, business, zone, type: labels[type], date: fecha };
+  const lead  = { name, phone, business: perfiles[business], zone, type: labels[type], date: fecha };
   const { error } = await sb.from('mayorista_leads').insert(lead);
   if (error) console.error('Mayorista insert error:', error);
   ['mwName', 'mwPhone', 'mwBusiness', 'mwZone'].forEach(id => document.getElementById(id).value = '');
