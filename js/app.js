@@ -27,10 +27,40 @@ let addressesAvailable = true;   // false si la tabla addresses todavía no exis
 let editingAddressId = null;
 let selectedAddressId = null;    // dirección guardada elegida en el checkout (null = nueva)
 
+let isAdmin = false;              // el usuario con sesión está en la tabla admins (ver supabase/seguridad.sql)
+
 // ===== UTILIDADES =====
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+// TRANSICIÓN: mientras no se corra supabase/seguridad.sql, la base puede aceptar pedidos solo con la clave
+// anónima. Estas funciones prueban primero con la sesión del usuario y, si falla, como antes.
+// Una vez corrido el SQL se pueden simplificar a usar solo `sb`.
+function anonFetch(path, opts = {}) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...opts,
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', ...(opts.headers || {}) },
+  });
+}
+
+async function insertOrder(order) {
+  const { error } = await sb.from('orders').insert(order);
+  if (!error) return null;
+  console.warn('Insert con sesión falló, reintento con clave anónima:', error.message);
+  const res = await anonFetch('orders', { method: 'POST', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify(order) });
+  return res.ok ? null : (await res.text()) || 'Error al guardar';
+}
+
+async function selectOrders(query) {
+  const build = q => Object.entries(query).reduce((acc, [k, v]) => acc.eq(k, v), q);
+  const { data, error } = await build(sb.from('orders').select('*')).order('created_at', { ascending: false });
+  if (!error && data?.length) return data;
+  const qs = Object.entries(query).map(([k, v]) => k + '=eq.' + encodeURIComponent(v)).join('&');
+  const old = await anonFetch('orders?' + qs + '&order=created_at.desc').then(r => r.ok ? r.json() : []).catch(() => []);
+  return Array.isArray(old) ? old : [];
+}
+
+async function checkIsAdmin() {
+  const { data, error } = await sb.rpc('is_admin');
+  if (error) { console.warn('is_admin no disponible:', error.message); return null; }
+  return data === true;
 }
 
 // ===== INICIALIZACIÓN =====
@@ -111,14 +141,13 @@ async function init() {
         await loadCurrentUser(session.user);
       } else if (event === 'SIGNED_OUT') {
         currentUser = null;
+        isAdmin = false;
         resetNav();
       }
     } catch (e) {
       console.error('onAuthStateChange error:', e);
     }
   });
-
-  updateAdminStats();
 }
 
 async function loadCurrentUser(authUser) {
@@ -144,6 +173,7 @@ async function loadCurrentUser(authUser) {
   currentUser = profile ? { ...profile, email: authUser.email } : { id: authUser.id, email: authUser.email, name: authUser.email.split('@')[0], last: '', phone: '', zone: '' };
   updateNavForUser();
   loadAddresses();
+  isAdmin = (await checkIsAdmin()) === true;
 }
 
 // ===== RENDER =====
@@ -473,11 +503,7 @@ async function applyCoupon() {
   }
 
   try {
-    const hdrs = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
-    const used = await fetch(
-      SUPABASE_URL + '/rest/v1/orders?user_id=eq.' + currentUser.id + '&coupon=eq.' + code + '&select=id',
-      { headers: hdrs }
-    ).then(r => r.json()).catch(() => []);
+    const used = await selectOrders({ user_id: currentUser.id, coupon: code });
 
     if (used?.length) {
       appliedCoupon = null;
@@ -669,30 +695,18 @@ async function confirmOrder() {
       items_detalle: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
     };
 
-    const postOrder = body => fetch(SUPABASE_URL + '/rest/v1/orders', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal',
-      },
-      body: JSON.stringify(body),
-    });
-
-    let res = await postOrder(order);
-    if (!res.ok) {
+    let insertError = await insertOrder(order);
+    if (insertError) {
       // Si la base todavía no tiene la columna items_detalle (o no acepta el estado nuevo),
       // guardamos el pedido como antes para no perder la venta
-      console.warn('Insert con detalle falló, reintento sin detalle:', await res.text());
+      console.warn('Insert con detalle falló, reintento sin detalle:', insertError);
       const { items_detalle, ...legacy } = order;
-      res = await postOrder({ ...legacy, status: 'Pendiente' });
+      insertError = await insertOrder({ ...legacy, status: 'Pendiente' });
     }
 
-    if (!res.ok) {
-      const msg = await res.text();
+    if (insertError) {
       showToast('❌ Error al guardar el pedido');
-      console.error('Insert error:', msg);
+      console.error('Insert error:', insertError);
       return;
     }
 
@@ -707,7 +721,7 @@ async function confirmOrder() {
     appliedCoupon = null;
     updateCartUI();
     showPage('confirm');
-    updateAdminStats();
+    if (isAdmin) updateAdminStats();
 
   } catch (e) {
     console.error('confirmOrder error:', e);
@@ -995,6 +1009,7 @@ function resetNav() {
 async function logout() {
   await sb.auth.signOut();
   currentUser = null;
+  isAdmin = false;
   myAddresses = [];
   myOrders = [];
   resetNav();
@@ -1038,12 +1053,7 @@ async function showAccountTab(tab, el) {
       return;
     }
     // Solo los pedidos de esta cuenta (antes también buscaba por nombre y podía mostrar pedidos de otra persona)
-    const hdrs = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
-    const orders = await fetch(
-      SUPABASE_URL + '/rest/v1/orders?user_id=eq.' + currentUser.id + '&order=created_at.desc',
-      { headers: hdrs }
-    ).then(r => r.json()).catch(() => []);
-    myOrders = Array.isArray(orders) ? orders : [];
+    myOrders = await selectOrders({ user_id: currentUser.id });
     renderMyOrders();
   }
 }
@@ -1280,13 +1290,33 @@ async function saveCheckoutAddress(addr) {
 }
 
 // ===== ADMIN =====
+// El admin entra con un usuario de Supabase que esté en la tabla admins (ver supabase/seguridad.sql)
 async function doAdminLogin() {
-  const hash = await sha256(document.getElementById('adminPass').value);
-  if (hash === ADMIN_PASS_HASH) {
+  const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+  const pass  = document.getElementById('adminPass').value;
+  if (!email || !pass) { showToast('❌ Ingresá email y contraseña'); return; }
+  const btn = document.getElementById('adminLoginBtn');
+  btn.disabled = true; btn.textContent = 'Ingresando...';
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) { showToast('❌ Email o contraseña incorrectos'); return; }
+    const admin = await checkIsAdmin();
+    if (admin !== true) {
+      await sb.auth.signOut();
+      currentUser = null; isAdmin = false; resetNav();
+      showToast(admin === null ? '❌ El acceso de admin todavía no está activado' : '❌ Esta cuenta no tiene acceso al panel');
+      return;
+    }
+    if (data?.user) await loadCurrentUser(data.user);
+    isAdmin = true;
+    document.getElementById('adminPass').value = '';
     showToast('✓ Bienvenido al panel');
-    setTimeout(() => showPage('admin'), 400);
-  } else {
-    showToast('❌ Contraseña incorrecta');
+    showPage('admin');
+  } catch (e) {
+    console.error('doAdminLogin error:', e);
+    showToast('❌ Error inesperado, intentá de nuevo');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Acceder →';
   }
 }
 
@@ -1394,6 +1424,8 @@ function embedVideo(slot) {
 
 // ===== NAVEGACIÓN =====
 function showPage(page) {
+  if (page === 'admin' && !isAdmin) page = 'adminlogin';
+  if (page === 'adminlogin' && isAdmin) page = 'admin';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   window.scrollTo(0, 0);

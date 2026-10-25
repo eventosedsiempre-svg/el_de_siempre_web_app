@@ -677,10 +677,14 @@
     <p>Acceso exclusivo para el administrador</p>
     <div class="auth-card" style="text-align:left">
       <div class="form-group">
-        <label>Contraseña</label>
-        <input class="form-input" placeholder="••••••••" type="password" id="adminPass" onkeydown="if(event.key==='Enter')doAdminLogin()">
+        <label>Email</label>
+        <input class="form-input" placeholder="admin@email.com" type="email" id="adminEmail" autocomplete="username">
       </div>
-      <button class="btn-full" onclick="doAdminLogin()">Acceder →</button>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input class="form-input" placeholder="••••••••" type="password" id="adminPass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+      </div>
+      <button class="btn-full" id="adminLoginBtn" onclick="doAdminLogin()">Acceder →</button>
     </div>
   </div>
 </div>
@@ -697,6 +701,7 @@
       <div class="admin-nav-item" onclick="showAdminTab('catering',this)">Eventos</div>
       <div class="admin-nav-item" onclick="showAdminTab('mayorista',this)">Revendedores</div>
       <div class="admin-nav-item" onclick="showAdminTab('videos',this)">Videos</div>
+      <div class="admin-nav-item" onclick="logout()">Salir</div>
     </div>
     <button class="btn-nav" style="color:#fff;border-color:rgba(255,255,255,0.25);font-size:12px" onclick="showPage('home')">← Volver al sitio</button>
   </div>
