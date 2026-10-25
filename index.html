@@ -24,7 +24,7 @@
     <ul class="nav-links">
       <li><a onclick="showPage('shop')">Productos</a></li>
       <li><a onclick="filterAndShow('PROMOCIONES')">🔥 Promos</a></li>
-      <li><a onclick="showPage('catering')">Catering</a></li>
+      <li><a onclick="showPage('catering')">Eventos</a></li>
       <li><a onclick="showPage('mayorista')">Mayorista</a></li>
       <li><a onclick="showPage('nosotros')">Nosotros</a></li>
     </ul>
@@ -102,7 +102,7 @@
         <h1 class="hero-title">Lo casero tiene<br><em>otro sabor.</em></h1>
         <p class="hero-sub">Pizzas, empanadas y milanesas artesanales, listas para calentar. Y cuando querés celebrar en grande, estamos para eso también.</p>
         <button class="btn-primary" onclick="showPage('shop')">Ver productos →</button>
-        <button class="btn-secondary" onclick="showPage('catering')">Catering</button>
+        <button class="btn-secondary" onclick="showPage('catering')">Eventos</button>
       </div>
       <div class="hero-visual">
         <div class="hero-card" onclick="filterAndShow('PROMOCIONES')"><div class="hero-card-emoji">🔥</div><h3>Promociones</h3><p>Packs con el mejor precio</p></div>
@@ -254,8 +254,8 @@
         <div>
           <div class="section-label" style="color:rgba(255,255,255,0.6)">Para eventos</div>
           <h2>¿Organizás un evento?</h2>
-          <p>Paquetes de catering para reuniones, cumpleaños, empresas y casamientos.</p>
-          <button class="btn-white" onclick="showPage('catering')">Consultar catering →</button>
+          <p>Paquetes para reuniones, cumpleaños, empresas y casamientos.</p>
+          <button class="btn-white" onclick="showPage('catering')">Cotizar mi evento →</button>
         </div>
         <div style="text-align:center;font-size:68px">🎉</div>
       </div>
@@ -283,7 +283,7 @@
           <h4>Empresa</h4>
           <ul>
             <li onclick="showPage('nosotros')">Nosotros</li>
-            <li onclick="showPage('catering')">Catering</li>
+            <li onclick="showPage('catering')">Eventos</li>
             <li onclick="showPage('mayorista')">Venta mayorista</li>
           </ul>
         </div>
@@ -342,11 +342,11 @@
   </section>
 </div>
 
-<!-- ========== CATERING ========== -->
+<!-- ========== EVENTOS ========== -->
 <div class="page" id="page-catering">
   <div class="catering-page">
     <div style="font-size:44px;margin-bottom:13px">🎉</div>
-    <h2>Catering y eventos</h2>
+    <h2>Eventos</h2>
     <p class="sub">Completá el formulario y te contactamos en menos de 2 horas para armar el menú ideal para tu evento.</p>
     <div class="auth-card">
       <div class="form-group"><label>Nombre completo <span class="req">*</span></label><input class="form-input" placeholder="Tu nombre" id="ctName"></div>
@@ -613,7 +613,7 @@
       <div class="admin-nav-item" onclick="showAdminTab('products',this)">Productos</div>
       <div class="admin-nav-item" onclick="showAdminTab('orders',this)">Pedidos</div>
       <div class="admin-nav-item" onclick="showAdminTab('customers',this)">Clientes</div>
-      <div class="admin-nav-item" onclick="showAdminTab('catering',this)">Catering</div>
+      <div class="admin-nav-item" onclick="showAdminTab('catering',this)">Eventos</div>
       <div class="admin-nav-item" onclick="showAdminTab('mayorista',this)">Mayorista</div>
       <div class="admin-nav-item" onclick="showAdminTab('videos',this)">Videos</div>
     </div>
@@ -627,7 +627,7 @@
         <div class="stat-card"><div class="stat-label">Ventas acumuladas</div><div class="stat-num" id="adminSalesMonth">$0</div></div>
         <div class="stat-card"><div class="stat-label">Pedidos</div><div class="stat-num" id="adminOrderCount">0</div></div>
         <div class="stat-card"><div class="stat-label">Usuarios</div><div class="stat-num" id="adminUserCount">0</div></div>
-        <div class="stat-card"><div class="stat-label">Catering</div><div class="stat-num" id="adminCateringCount">0</div></div>
+        <div class="stat-card"><div class="stat-label">Eventos</div><div class="stat-num" id="adminCateringCount">0</div></div>
         <div class="stat-card"><div class="stat-label">Mayorista</div><div class="stat-num" id="adminMayoristaCount">0</div></div>
       </div>
       <div class="chart-wrap">
@@ -671,9 +671,9 @@
       </table>
     </div>
 
-    <!-- Catering -->
+    <!-- Eventos -->
     <div id="adminCatering" style="display:none">
-      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Consultas de catering</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:13px">Consultas de eventos</div>
       <table class="admin-table">
         <thead><tr><th>Nombre</th><th>Teléfono</th><th>Zona</th><th>Personas</th><th>Tipo</th><th>Fecha</th></tr></thead>
         <tbody id="cateringBody"><tr><td colspan="6" style="color:var(--gray);text-align:center;padding:18px">Sin consultas todavía</td></tr></tbody>

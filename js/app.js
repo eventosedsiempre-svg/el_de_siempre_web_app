@@ -6,7 +6,7 @@ const CATS_DEF = [
   { name: 'TARTAS',      emoji: '🥧', label: 'Tartas' },
   { name: 'SIN TACC',    emoji: '🌾', label: 'Sin TACC' },
   { name: 'MILANESAS',   emoji: '🥩', label: 'Milanesas' },
-  { name: 'CATERING',    emoji: '🎉', label: 'Catering' },
+  { name: 'CATERING',    emoji: '🎉', label: 'Eventos' },
 ];
 
 // ===== ESTADO GLOBAL =====
@@ -696,7 +696,7 @@ async function submitCatering() {
   if (!name || !phone || !zone || !guests || !type) { showToast('❌ Completá todos los campos'); return; }
   const fecha = new Date().toLocaleDateString('es-AR');
   // Abrir WhatsApp antes del await para que el navegador no bloquee el popup
-  const msg = encodeURIComponent('Hola El de Siempre! Quiero consultar por catering.\nNombre: ' + name + '\nZona: ' + zone + '\nPersonas: ' + guests + '\nTipo: ' + labels[type] + '\nTel: ' + phone);
+  const msg = encodeURIComponent('Hola El de Siempre! Quiero consultar por un evento.\nNombre: ' + name + '\nZona: ' + zone + '\nPersonas: ' + guests + '\nTipo: ' + labels[type] + '\nTel: ' + phone);
   window.open('https://wa.me/' + WA_NUMBER + '?text=' + msg, '_blank');
   const lead  = { name, phone, zone, guests, type: labels[type], date: fecha };
   const { error } = await sb.from('catering_leads').insert(lead);
