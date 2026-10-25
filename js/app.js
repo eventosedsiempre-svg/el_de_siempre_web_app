@@ -179,7 +179,6 @@ async function loadCurrentUser(authUser) {
   isAdmin = (await checkIsAdmin()) === true;
 }
 
-// ===== RENDER =====
 // ===== PROMOCIONES =====
 // Si la tabla todavía no existe en Supabase la tienda sigue igual, sin promos
 async function loadPromos() {
@@ -191,6 +190,7 @@ async function loadPromos() {
 
 // Vuelve a dibujar todo lo que muestra precios con promo
 function refreshPromoViews() {
+  renderPromoBanner();
   renderFeaturedProducts();
   filterProducts(document.getElementById('searchInput')?.value || '');
   updateCartUI();
@@ -202,6 +202,56 @@ function cartTotals() {
 
 function money(n) { return '$' + Math.round(n).toLocaleString('es-AR'); }
 
+// Cartel de la home: promos automáticas vigentes y cupones que el admin marcó para anunciar
+function renderPromoBanner() {
+  const section = document.getElementById('promoBannerSection');
+  const hoy     = argentinaHoy();
+  const activas = PROMOS.filter(p => promoVigente(p, hoy) && (!p.codigo || p.anunciar));
+  section.style.display = activas.length ? 'block' : 'none';
+  document.getElementById('promoBanner').innerHTML = activas.map(p => {
+    const detalle = [
+      p.codigo ? `Cupón <strong>${escapeHtml(p.codigo)}</strong>` : '',
+      p.dias?.length ? 'Solo ' + textoDias(p.dias) : '',
+      p.hasta ? 'Hasta el ' + fechaCorta(p.hasta).replace(/\/\d{4}$/, '') : '',
+      Number(p.minimo) > 0 ? 'Comprando desde ' + money(p.minimo) : '',
+    ].filter(Boolean).join(' · ');
+    return `
+      <div class="promo-banner-item" onclick="showPromoProducts('${p.id}')">
+        <div class="promo-banner-title">🔥 ${escapeHtml(p.texto || p.nombre)}</div>
+        ${detalle ? `<div class="promo-banner-detail">${detalle}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// Click en el cartel: muestra los productos de esa promo (o todo, si es para el pedido entero)
+function showPromoProducts(id) {
+  const p = PROMOS.find(x => x.id === id);
+  if (!p) return;
+  if (p.codigo) {
+    document.getElementById('couponInput').value = p.codigo;
+    showToast('🏷️ Usá el código ' + p.codigo + ' en el carrito', 4000);
+  }
+  showPage('shop');
+  currentFilter = 'Todos';
+  renderShopCats();
+  document.getElementById('shopTitle').textContent = p.texto || p.nombre;
+  renderShopProducts(p.aplica === 'pedido' ? products : products.filter(x => promoAplicaA(p, x)));
+}
+
+// Etiqueta PROMO y precio para catálogo y modal. Si la promo pide un mínimo de compra, se avisa en vez de tachar el precio.
+function productPromoInfo(p) {
+  const m = mejorPromoProducto(p, PROMOS, argentinaHoy());
+  if (!m) return { badge: '', price: money(p.price) };
+  const minimo = Number(m.promo.minimo) || 0;
+  return {
+    badge: `<span class="badge badge-eds-promo" title="${escapeHtml(m.promo.texto || m.promo.nombre)}">PROMO</span>`,
+    price: minimo > 0
+      ? `${money(p.price)} <span class="promo-min">${money(m.precio)} comprando desde ${money(minimo)}</span>`
+      : `<s class="price-old">${money(p.price)}</s> <span class="price-promo">${money(m.precio)}</span>`,
+  };
+}
+
+// ===== RENDER =====
 function catHasProducts(cat) { return products.some(p => p.cat === cat); }
 
 function renderHomeCats() {
@@ -242,15 +292,16 @@ function productCard(p) {
   if      (p.badge === 'promo')   badge = '<span class="badge badge-promo">🔥 Oferta</span>';
   else if (p.badge === 'top')     badge = '<span class="badge badge-top">⭐ Top</span>';
   else if (p.badge === 'sintacc') badge = '<span class="badge badge-sintacc">Sin TACC</span>';
+  const promo = productPromoInfo(p);
   return `
     <div class="product-card" onclick="openModal(${p.id})">
       <div class="product-img">${imgHtml}</div>
       <div class="product-info">
-        ${badge}
+        ${promo.badge}${badge}
         <div class="product-name">${p.name}</div>
         <div class="product-desc">${p.desc || ''}</div>
         <div class="product-footer">
-          <div class="product-price">$${p.price.toLocaleString('es-AR')}</div>
+          <div class="product-price">${promo.price}</div>
           <button class="add-btn" onclick="event.stopPropagation();addToCart(${p.id})">+</button>
         </div>
       </div>
@@ -803,12 +854,13 @@ function openModal(id) {
   }
   document.getElementById('modalTitle').textContent = p.name;
   document.getElementById('modalDesc').textContent  = p.desc || '';
-  document.getElementById('modalPrice').textContent = '$' + p.price.toLocaleString('es-AR');
+  const promo = productPromoInfo(p);
+  document.getElementById('modalPrice').innerHTML   = promo.price;
   document.getElementById('modalQty').textContent   = 1;
   let badge = '';
   if      (p.badge === 'promo')   badge = '<span class="badge badge-promo" style="margin-bottom:8px;display:inline-block">🔥 Oferta especial</span>';
   else if (p.badge === 'sintacc') badge = '<span class="badge badge-sintacc" style="margin-bottom:8px;display:inline-block">Sin TACC</span>';
-  document.getElementById('modalBadge').innerHTML   = badge;
+  document.getElementById('modalBadge').innerHTML   = promo.badge + badge;
   document.getElementById('modalAddBtn').onclick    = () => { addToCart(p.id, modalQtyVal); closeModal(); };
   document.getElementById('productModal').classList.add('open');
 }
