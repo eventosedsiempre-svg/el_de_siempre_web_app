@@ -531,6 +531,21 @@
         <div class="form-group"><label>Email</label><input class="form-input" placeholder="tu@email.com" type="email" id="loginEmail"></div>
         <div class="form-group"><label>Contraseña</label><input class="form-input" placeholder="••••••••" type="password" id="loginPass"></div>
         <button class="btn-full" onclick="doLogin()">Ingresar →</button>
+        <button class="auth-link" onclick="showForgot()">¿Olvidaste tu contraseña?</button>
+      </div>
+
+      <!-- Olvidé mi contraseña -->
+      <div id="authForgot" style="display:none">
+        <h3 style="font-size:16px;font-weight:600;margin-bottom:6px">Recuperá tu contraseña</h3>
+        <p class="auth-note">Poné el mail con el que te registraste y te mandamos un link para crear una contraseña nueva.</p>
+        <div id="forgotForm">
+          <div class="form-group"><label>Email</label><input class="form-input" placeholder="tu@email.com" type="email" id="forgotEmail"></div>
+          <button class="btn-full" id="forgotBtn" onclick="doForgotPassword()">Enviarme el link →</button>
+        </div>
+        <div class="auth-msg" id="forgotSent" style="display:none">
+          📩 Si el mail está registrado, te mandamos un link para crear una contraseña nueva. Revisá también la carpeta de spam. El link vence en 1 hora.
+        </div>
+        <button class="auth-link" onclick="hideForgot()">← Volver a ingresar</button>
       </div>
 
       <!-- Registro -->
@@ -556,6 +571,25 @@
         <div class="form-group"><label>Contraseña <span class="req">*</span></label><input class="form-input" placeholder="Mínimo 8 caracteres" type="password" id="regPass"></div>
         <button class="btn-full" onclick="doRegister()">Crear cuenta →</button>
         <p style="font-size:11px;color:var(--gray);text-align:center;margin-top:10px">Tus datos quedan guardados de forma segura</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== NUEVA CONTRASEÑA (link del mail) ========== -->
+<div class="page" id="page-reset">
+  <div class="auth-page">
+    <h2>Nueva contraseña</h2>
+    <p>Elegí una contraseña nueva para tu cuenta</p>
+    <div class="auth-card">
+      <div id="resetForm">
+        <div class="form-group"><label>Contraseña nueva</label><input class="form-input" placeholder="Mínimo 8 caracteres" type="password" id="resetPass"></div>
+        <div class="form-group"><label>Repetí la contraseña</label><input class="form-input" placeholder="••••••••" type="password" id="resetPass2"></div>
+        <button class="btn-full" id="resetBtn" onclick="doResetPassword()">Guardar contraseña →</button>
+      </div>
+      <div id="resetExpired" style="display:none">
+        <div class="auth-msg">⏰ El link venció o ya se usó. Pedí uno nuevo y usalo dentro de la hora.</div>
+        <button class="btn-full" onclick="showPage('auth');showForgot()">Pedir un link nuevo →</button>
       </div>
     </div>
   </div>

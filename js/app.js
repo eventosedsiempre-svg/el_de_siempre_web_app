@@ -30,6 +30,12 @@ async function sha256(str) {
 
 // ===== INICIALIZACIÓN =====
 async function init() {
+  // El link de "olvidé mi contraseña" vuelve con #...type=recovery (o #error=... si venció).
+  // Lo leemos antes de crear el cliente porque Supabase limpia la URL al procesarlo.
+  const urlHash      = new URLSearchParams(location.hash.slice(1));
+  const isRecovery   = urlHash.get('type') === 'recovery';
+  const recoveryFail = !!urlHash.get('error_code');
+
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       storage: window.sessionStorage,
@@ -84,6 +90,9 @@ async function init() {
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (session?.user) await loadCurrentUser(session.user);
+    if (isRecovery && session) showResetPage(false);
+    else if (recoveryFail || isRecovery) showResetPage(true);
+    if (isRecovery || recoveryFail) history.replaceState(null, '', location.pathname + location.search);
   } catch (e) {
     console.error('getSession error:', e);
   }
@@ -91,7 +100,9 @@ async function init() {
   // Escuchar cambios de auth en tiempo real
   sb.auth.onAuthStateChange(async (event, session) => {
     try {
-      if (event === 'SIGNED_IN' && session?.user) {
+      if (event === 'PASSWORD_RECOVERY') {
+        showResetPage(false);
+      } else if (event === 'SIGNED_IN' && session?.user) {
         await loadCurrentUser(session.user);
       } else if (event === 'SIGNED_OUT') {
         currentUser = null;
@@ -764,6 +775,77 @@ function switchAuth(type, btn) {
   btn.classList.add('active');
   document.getElementById('authLogin').style.display    = type === 'login'    ? 'block' : 'none';
   document.getElementById('authRegister').style.display = type === 'register' ? 'block' : 'none';
+  document.getElementById('authForgot').style.display   = 'none';
+}
+
+function showForgot() {
+  document.querySelector('.auth-toggle').style.display  = 'none';
+  document.getElementById('authLogin').style.display    = 'none';
+  document.getElementById('authRegister').style.display = 'none';
+  document.getElementById('authForgot').style.display   = 'block';
+  document.getElementById('forgotForm').style.display   = 'block';
+  document.getElementById('forgotSent').style.display   = 'none';
+  const email = document.getElementById('loginEmail').value.trim();
+  if (email) document.getElementById('forgotEmail').value = email;
+}
+
+function hideForgot() {
+  document.querySelector('.auth-toggle').style.display = 'flex';
+  switchAuth('login', document.querySelector('.auth-tab'));
+}
+
+async function doForgotPassword() {
+  const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) { showToast('❌ Ingresá un email válido'); return; }
+  const btn = document.getElementById('forgotBtn');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    // Siempre mostramos el mismo mensaje, exista o no el mail (por seguridad)
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+    if (error) console.error('resetPasswordForEmail error:', error);
+  } catch (e) {
+    console.error('doForgotPassword error:', e);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enviarme el link →';
+  }
+  document.getElementById('forgotForm').style.display = 'none';
+  document.getElementById('forgotSent').style.display = 'block';
+}
+
+function showResetPage(expired) {
+  showPage('reset');
+  document.getElementById('resetForm').style.display    = expired ? 'none' : 'block';
+  document.getElementById('resetExpired').style.display = expired ? 'block' : 'none';
+}
+
+async function doResetPassword() {
+  const pass  = document.getElementById('resetPass').value;
+  const pass2 = document.getElementById('resetPass2').value;
+  if (pass.length < 8) { showToast('❌ La contraseña debe tener al menos 8 caracteres'); return; }
+  if (pass !== pass2)  { showToast('❌ Las contraseñas no coinciden'); return; }
+  const btn = document.getElementById('resetBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { showResetPage(true); return; }
+    const { error } = await sb.auth.updateUser({ password: pass });
+    if (error) {
+      console.error('updateUser error:', error);
+      showToast(error.message.toLowerCase().includes('different')
+        ? '❌ La contraseña nueva tiene que ser distinta a la anterior'
+        : '❌ No pudimos guardar la contraseña, intentá de nuevo');
+      return;
+    }
+    document.getElementById('resetPass').value  = '';
+    document.getElementById('resetPass2').value = '';
+    showToast('✓ Contraseña actualizada');
+    showPage('account');
+  } catch (e) {
+    console.error('doResetPassword error:', e);
+    showToast('❌ Error inesperado, intentá de nuevo');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar contraseña →';
+  }
 }
 
 async function doLogin() {
